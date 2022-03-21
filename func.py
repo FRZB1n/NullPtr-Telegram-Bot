@@ -20,16 +20,16 @@ class Work(object):
             cur = connect.cursor()
             id = message.chat.id
             cur.execute("""CREATE TABLE IF NOT EXISTS records(
-            user_id INTEGER NOT NULL,
-            password CHAR,
-            admin BOOL,
-            reseller BOOL,
-            reseller_sub_count INTEGER,
-            hack_type CHAR,
-            has_subscription BOOL,
-            time_subscription DATE,
-            hwid CHAR,
-            ban BOOL
+                user_id INTEGER NOT NULL,
+                password CHAR,
+                admin BOOL,
+                reseller BOOL,
+                reseller_sub_count INTEGER,
+                hack_type CHAR,
+                has_subscription BOOL,
+                time_subscription DATE,
+                hwid CHAR,
+                ban BOOL
             )""")
             connect.commit()
 
