@@ -3,18 +3,18 @@ from telebot import types
 import sqlite3
 import datetime
 
-UserKb = telebot.types.ReplyKeyboardMarkup(True)
-UserKb.row('Buy', 'Change password', 'Subscription')
+user_kb = telebot.types.ReplyKeyboardMarkup(True)
+user_kb.row('Buy', 'Change password', 'Subscription')
 
-AdmKb = telebot.types.ReplyKeyboardMarkup(True)
-AdmKb.row('Ban', 'Unban', 'Give sub')
-AdmKb.row('Give sub count',  'HWID del', 'Resller add')
+adm_kb = telebot.types.ReplyKeyboardMarkup(True)
+adm_kb.row('Ban', 'Unban', 'Give sub')
+adm_kb.row('Give sub count',  'HWID del', 'Resller add')
 
-ResKb = telebot.types.ReplyKeyboardMarkup(True)
-ResKb.row('Give sub', 'HWID del', 'Get sub count')
+res_kb = telebot.types.ReplyKeyboardMarkup(True)
+res_kb.row('Give sub', 'HWID del', 'Get sub count')
 
 class Work(object):
-    def Start(self, bot: telebot.TeleBot ,message:types.Message):
+    def start(self, bot: telebot.TeleBot ,message:types.Message):
         try:
             connect = sqlite3.connect('users.db')
             cur = connect.cursor()
@@ -58,18 +58,18 @@ class Work(object):
                 prev = cur.fetchone()
                
                 if prev[0] == True:
-                    bot.send_message(id, "С возвращением " + str(message.chat.username) + "!", reply_markup= AdmKb)
+                    bot.send_message(id, "С возвращением " + str(message.chat.username) + "!", reply_markup= adm_kb)
                 elif prev[1] == True:
-                    bot.send_message(id, "С возвращением " + str(message.chat.username) + "!", reply_markup= ResKb)
+                    bot.send_message(id, "С возвращением " + str(message.chat.username) + "!", reply_markup= res_kb)
                 else:
-                    bot.send_message(id, "С возвращением " + str(message.chat.username) + "!", reply_markup= UserKb)
+                    bot.send_message(id, "С возвращением " + str(message.chat.username) + "!", reply_markup= user_kb)
                     
         except Exception as e:
             print(str(e))
 
 
 
-    def Subscription(self, bot: telebot.TeleBot ,message:types.Message):
+    def subscription(self, bot: telebot.TeleBot ,message:types.Message):
         try:
            
             connect = sqlite3.connect('users.db')
@@ -114,12 +114,12 @@ def SetPass(message:types.Message, bot: telebot.TeleBot):
         prev = cur.fetchone()
             
         if prev[0] == True:
-            bot.send_message(inf[1], "Пароль успешно добавлен", reply_markup= AdmKb)
+            bot.send_message(inf[1], "Пароль успешно добавлен", reply_markup= adm_kb)
         elif prev[1] == True:
-            bot.send_message(inf[1], "Пароль успешно добавлен", reply_markup= ResKb)
+            bot.send_message(inf[1], "Пароль успешно добавлен", reply_markup= res_kb)
         else:
-            bot.send_message(inf[1], "Пароль успешно добавлен", reply_markup= UserKb)
+            bot.send_message(inf[1], "Пароль успешно добавлен", reply_markup= user_kb)
 
     except Exception as e:
         print(str(e))
-        bot.send_message(message.chat.id, "Пароль не добавлен", reply_markup= UserKb)
+        bot.send_message(message.chat.id, "Пароль не добавлен")

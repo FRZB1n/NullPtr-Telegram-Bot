@@ -15,14 +15,14 @@ adm= [
 bot = telebot.TeleBot("5111501194:AAGt_2JJPpvPbT6846bPQj83GhWB7Ju3720")
 f = Work()
 @bot.message_handler(commands=['start'])
-def Initialize(message):
-    f.Start(bot, message)
+def init(message):
+    f.start(bot, message)
 
 
 @bot.message_handler(content_types=['text'])
-def TextHandler(message: types.Message):
+def txt_handler(message: types.Message):
   if message.text == 'Subscription':
-    f.Subscription(bot, message)
+    f.subscription(bot, message)
 
 
 
