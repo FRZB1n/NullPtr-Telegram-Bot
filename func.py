@@ -92,8 +92,8 @@ class Work(object):
 
                 cur.execute(f"SELECT time_subscription FROM records WHERE user_id = {id}")
                 date = cur.fetchone()
-                Splitted = date[0].split("-")
-                end_date = datetime.date(int(Splitted[0]), int(Splitted[1]), int(Splitted[2]))
+                splitted = date[0].split("-")
+                end_date = datetime.date(int(splitted[0]), int(splitted[1]), int(splitted[2]))
             
                 delta_date = end_date - datetime.date.today()
 
@@ -106,21 +106,37 @@ class Work(object):
         except Exception as e:
             print(str(e))
 
+    def ban_start(self, bot: telebot.TeleBot ,message:types.Message):
+        try:
+            us_id = bot.send_message(message.chat.id, "Введите id юзера для бана")     
+            bot.register_next_step_handler (us_id, ban, bot)       
+        except Exception as e:
+            print(str(e))
 
+
+    def unban_start(self, bot: telebot.TeleBot ,message:types.Message):
+        try:
+            us_id = bot.send_message(message.chat.id, "Введите id юзера для разбана")     
+            bot.register_next_step_handler (us_id, unban, bot)     
+        except Exception as e:
+            print(str(e))
 
     def check_status(self, message:types.Message):
-        connect = sqlite3.connect('users.db')
-        cur = connect.cursor()
+        try:
+            connect = sqlite3.connect('users.db')
+            cur = connect.cursor()
 
-        cur.execute(f"SELECT admin, reseller FROM records WHERE user_id = {message.chat.id}")
-        prev = cur.fetchone()
+            cur.execute(f"SELECT admin, reseller FROM records WHERE user_id = {message.chat.id}")
+            prev = cur.fetchone()
 
-        if prev[0] == True:
-            return 2
-        elif prev[1] == True:
-            return 1
-        else:
-            return 0
+            if prev[0] == True:
+                return 2
+            elif prev[1] == True:
+                return 1
+            else:
+                return 0
+        except Exception as e:
+            print(str(e))
 
 
 
@@ -132,8 +148,30 @@ class Work(object):
 
 
 #------------------------------CLASS USING FUNCTIONS------------------------------
+def unban(message:types.Message, bot: telebot.TeleBot):
+    try:
+        connect = sqlite3.connect('users.db')
+        cur = connect.cursor()
+        inf = [message.text]
+        cur.execute(" UPDATE records SET ban = False WHERE user_id = ?", inf)
+        connect.commit()
+        bot.send_message(message.chat.id, "Пользователь успешно разбанен")
+        bot.send_message(message.text, "Вам восстановлен доступ к услугам!")
+    except Exception as e:
+        print(str(e))
 
 
+def ban(message:types.Message, bot: telebot.TeleBot):
+    try:
+        connect = sqlite3.connect('users.db')
+        cur = connect.cursor()
+        inf = [message.text]
+        cur.execute(" UPDATE records SET ban = True WHERE user_id = ?", inf)
+        connect.commit()
+        bot.send_message(message.chat.id, "Пользователь успешно забанен")
+        bot.send_message(message.text, "Вам ограничен доступ к услугам")
+    except Exception as e:
+        print(str(e))
 
 
 def hwid_res( message:types.Message, bot: telebot.TeleBot ):
