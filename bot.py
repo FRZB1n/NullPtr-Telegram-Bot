@@ -24,7 +24,11 @@ def txt_handler(message: types.Message):
     if message.text == 'Subscription':
         f.subscription(bot, message)
     elif message.text == 'HWID del':
-        f.hwid_res(bot, message)
+        status = f.check_status(message)
+        if status > 0:
+            f.hwid_res_start(bot, message)
+        else:
+            bot.send_message(message.chat.id, "You aren't accesible")
 
 
 

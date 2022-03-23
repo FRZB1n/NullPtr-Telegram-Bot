@@ -67,18 +67,15 @@ class Work(object):
         except Exception as e:
             print(str(e))
 
-    def hwid_res(self, bot: telebot.TeleBot ,message:types.Message):
+    def hwid_res_start(self, bot: telebot.TeleBot ,message:types.Message):
         try:
-            connect = sqlite3.connect('users.db')
-            cur = connect.cursor()
-            id = message.chat.id
-            inf = [id]
-            
-            cur.execute(" UPDATE records SET hwid = NULL WHERE user_id = ?", inf)
-            connect.commit()
+            us_id = bot.send_message(message.chat.id, "Введите id пользователя у которого хотите сбросить хвид")
+            bot.register_next_step_handler (us_id, hwid_res, bot)
 
         except Exception as e:
             print(str(e))
+
+
 
     def subscription(self, bot: telebot.TeleBot ,message:types.Message):
         try:
@@ -92,10 +89,7 @@ class Work(object):
 
             if has_sub[0] == True:
 
-                #inf = [datetime.date.today(), id]   
-                #cur.execute("UPDATE records SET time_subscription = ? WHERE user_id = ?", inf)
-                #connect.commit()
-                
+
                 cur.execute(f"SELECT time_subscription FROM records WHERE user_id = {id}")
                 date = cur.fetchone()
                 Splitted = date[0].split("-")
@@ -111,6 +105,52 @@ class Work(object):
 
         except Exception as e:
             print(str(e))
+
+
+
+    def check_status(self, message:types.Message):
+        connect = sqlite3.connect('users.db')
+        cur = connect.cursor()
+
+        cur.execute(f"SELECT admin, reseller FROM records WHERE user_id = {message.chat.id}")
+        prev = cur.fetchone()
+
+        if prev[0] == True:
+            return 2
+        elif prev[1] == True:
+            return 1
+        else:
+            return 0
+
+
+
+
+
+
+
+
+
+
+#------------------------------CLASS USING FUNCTIONS------------------------------
+
+
+
+
+def hwid_res( message:types.Message, bot: telebot.TeleBot ):
+    try:
+        connect = sqlite3.connect('users.db')
+        cur = connect.cursor()
+        id = message.text
+        inf = [id]
+
+        cur.execute(" UPDATE records SET hwid = NULL WHERE user_id = ?", inf)
+        connect.commit()
+
+        bot.send_message(message.chat.id, "Пользователю с id = " + message.text + " успешно сброшен HWID. Пользователь уведомлён")
+        bot.send_message(id, "Ваш HWID был успешно сброшен")
+
+    except Exception as e:
+        print(str(e))
 
 
 def SetPass(message:types.Message, bot: telebot.TeleBot):
