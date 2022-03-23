@@ -67,7 +67,18 @@ class Work(object):
         except Exception as e:
             print(str(e))
 
+    def hwid_res(self, bot: telebot.TeleBot ,message:types.Message):
+        try:
+            connect = sqlite3.connect('users.db')
+            cur = connect.cursor()
+            id = message.chat.id
+            inf = [id]
+            
+            cur.execute(" UPDATE records SET hwid = NULL WHERE user_id = ?", inf)
+            connect.commit()
 
+        except Exception as e:
+            print(str(e))
 
     def subscription(self, bot: telebot.TeleBot ,message:types.Message):
         try:

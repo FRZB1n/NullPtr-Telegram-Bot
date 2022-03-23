@@ -21,8 +21,11 @@ def init(message):
 
 @bot.message_handler(content_types=['text'])
 def txt_handler(message: types.Message):
-  if message.text == 'Subscription':
-    f.subscription(bot, message)
+    if message.text == 'Subscription':
+        f.subscription(bot, message)
+    elif message.text == 'HWID del':
+        f.hwid_res(bot, message)
+
 
 
 
