@@ -26,7 +26,10 @@ def txt_handler(message: types.Message):
     if check_ban(message):
         return
 
-    status = f.check_status(message)
+    if CheckAcc(str(message.chat.id), adm):
+        status = 3
+    else:
+        status = f.check_status(message)
 
     if message.text == 'Subscription':
         f.subscription(bot, message)
@@ -50,7 +53,11 @@ def txt_handler(message: types.Message):
             bot.send_message(message.chat.id, "You aren't accesible")
         
 
-
+def CheckAcc(str_, words):
+    for word in words:
+        if word in str_:
+            return True
+    return False
 
 def check_ban(message: types.Message):
     connect = sqlite3.connect('users.db')
@@ -58,6 +65,9 @@ def check_ban(message: types.Message):
 
     cur.execute(f"SELECT ban FROM records WHERE user_id = {message.chat.id}")
     ban = cur.fetchone()
+    if ban is None:
+        return
+
     if ban[0] == True:
         video = open('videoplayback.mp4', 'rb')
         bot.send_video(message.chat.id, video)
