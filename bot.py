@@ -26,6 +26,7 @@ def txt_handler(message: types.Message):
     if check_ban(message):
         return
 
+
     if CheckAcc(str(message.chat.id), adm):
         status = 3
     else:
@@ -49,6 +50,12 @@ def txt_handler(message: types.Message):
     elif message.text == 'Unban':
         if status > 1:
             f.unban_start(bot, message)
+        else:
+            bot.send_message(message.chat.id, "You aren't accesible")
+
+    elif message.text == 'Give sub count':
+        if status > 1:
+            f.give_sub_count_start(bot, message)
         else:
             bot.send_message(message.chat.id, "You aren't accesible")
         

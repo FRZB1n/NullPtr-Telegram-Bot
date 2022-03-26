@@ -62,6 +62,7 @@ class Work(object):
                 cur.execute(f"SELECT admin, reseller FROM records WHERE user_id = {id}")
                 prev = cur.fetchone()
                
+
                 if prev[0] == True:
                     bot.send_message(id, "С возвращением " + str(message.chat.username) + "!", reply_markup= adm_kb)
                 elif prev[1] == True:
@@ -75,6 +76,22 @@ class Work(object):
         except Exception as e:
             print(str(e))
 
+    def give_sub_count_start(self, bot: telebot.TeleBot ,message:types.Message):
+        try:
+            us_id = bot.send_message(message.chat.id, "Введите id пользователя которому хотите выдать возможность раздачи подписки")
+            bot.register_next_step_handler (us_id, self.give_sub_count_int, bot)
+        except Exception as e:
+            print(str(e))
+
+    def give_sub_count_int(self,message:types.Message, bot: telebot.TeleBot):
+        try:
+            
+            sub_count = bot.send_message(message.chat.id, "Введите количество подписок возможных для выдачи юзером с id = " + str(message.text))
+            bot.register_next_step_handler (sub_count, give_sub_count, bot, message.text)
+            pass
+        except Exception as e:
+            print(str(e))
+        
     def hwid_res_start(self, bot: telebot.TeleBot ,message:types.Message):
         try:
             us_id = bot.send_message(message.chat.id, "Введите id пользователя у которого хотите сбросить хвид")
@@ -188,6 +205,34 @@ def ban(message:types.Message, bot: telebot.TeleBot):
     except Exception as e:
         print(str(e))
 
+
+def give_sub_count(message:types.Message, bot: telebot.TeleBot, id):
+    try:
+        connect = mysql.connector.connect(**config)
+        cur = connect.cursor()
+
+
+        cur.execute(f"SELECT admin, reseller FROM records WHERE user_id = {id}")
+        prev = cur.fetchone()
+        if prev[1] == 1 or prev[0] == 1:
+            cur.execute(f"SELECT reseller_sub_count FROM records WHERE user_id = {id}")
+            st_s_c = cur.fetchone()
+            inf = [int(str(st_s_c[0])) + int(message.text), id]   
+            cur.execute("UPDATE records SET reseller_sub_count = %s WHERE user_id = %s", inf)
+            connect.commit()
+            bot.send_message(message.chat.id, "Пользователю успешно добавлена возможность выдавать подписки\nПользователь осведомлен")
+            bot.send_message(id, "Вам начисленно " + message.text + " подписок для выдачи\nВсего: " + str(inf[0]) )
+            cur.close()
+            connect.close()
+            return
+        else:
+            bot.send_message(message.chat.id, "Похоже на то что он женщина, у него нет прав")
+            cur.close()
+            connect.close()
+            return
+
+    except Exception as e:
+        print(str(e))
 
 def hwid_res( message:types.Message, bot: telebot.TeleBot ):
     try:
