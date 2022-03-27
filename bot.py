@@ -1,13 +1,9 @@
 from email import message
 from telebot import types
 import telebot
-from func import Work
+from func import Work, adm
 import sqlite3
 
-adm= [
-    '1030297121',# FRZ
-    '630035056'#HOHOL
-]
 
 
 
@@ -27,7 +23,7 @@ def txt_handler(message: types.Message):
         return
 
 
-    if CheckAcc(str(message.chat.id), adm):
+    if f.CheckAcc(str(message.chat.id), adm):
         status = 3
     else:
         status = f.check_status(message)
@@ -58,13 +54,27 @@ def txt_handler(message: types.Message):
             f.give_sub_count_start(bot, message)
         else:
             bot.send_message(message.chat.id, "You aren't accesible")
+
+    elif message.text == 'Reseller add':
+        if status > 1:
+            f.resseler_add_init(bot, message)
+        else:
+            bot.send_message(message.chat.id, "You aren't accesible")
+
+    elif message.text == 'Reseller del':
+        if status > 1:
+            f.resseler_del_init(bot, message)
+        else:
+            bot.send_message(message.chat.id, "You aren't accesible")
+
+    elif message.text == 'Get sub count':
+        if status > 0:
+            f.get_sub_count(bot, message)
+        else:
+            bot.send_message(message.chat.id, "You aren't accesible")
         
 
-def CheckAcc(str_, words):
-    for word in words:
-        if word in str_:
-            return True
-    return False
+
 
 def check_ban(message: types.Message):
     connect = sqlite3.connect('users.db')

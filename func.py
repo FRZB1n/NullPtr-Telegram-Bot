@@ -3,12 +3,21 @@ from telebot import types
 import sqlite3
 import datetime
 import mysql.connector
+
+
+
+adm= [
+    '1030297121',# FRZ
+    '630035056'#HOHOL
+]
+
+
 user_kb = telebot.types.ReplyKeyboardMarkup(True)
 user_kb.row('Buy', 'Change password', 'Subscription')
 
 adm_kb = telebot.types.ReplyKeyboardMarkup(True)
 adm_kb.row('Ban', 'Unban', 'Give sub')
-adm_kb.row('Give sub count',  'HWID del', 'Resller add')
+adm_kb.row('Give sub count',  'HWID del', 'Reseller add', 'Reseller del')
 
 res_kb = telebot.types.ReplyKeyboardMarkup(True)
 res_kb.row('Give sub', 'HWID del', 'Get sub count')
@@ -62,8 +71,9 @@ class Work(object):
                 cur.execute(f"SELECT admin, reseller FROM records WHERE user_id = {id}")
                 prev = cur.fetchone()
                
-
-                if prev[0] == True:
+                if self.CheckAcc(str(message.chat.id), adm):
+                    bot.send_message(id, "С возвращением " + str(message.chat.username) + "!", reply_markup= adm_kb)
+                elif prev[0] == True:
                     bot.send_message(id, "С возвращением " + str(message.chat.username) + "!", reply_markup= adm_kb)
                 elif prev[1] == True:
                     bot.send_message(id, "С возвращением " + str(message.chat.username) + "!", reply_markup= res_kb)
@@ -73,6 +83,34 @@ class Work(object):
                 cur.close()
                 connect.close()
                     
+        except Exception as e:
+            print(str(e))
+
+    def get_sub_count(self, bot: telebot.TeleBot ,message:types.Message):
+        try:
+            connect = mysql.connector.connect(**config)
+            cur = connect.cursor()
+            id = message.chat.id
+            cur.execute(f"SELECT reseller_sub_count FROM records WHERE user_id = {id}")
+            res = cur.fetchone()
+            bot.send_message(id, "Всего возможностей выдать подписок: " + str(res[0]))
+
+        except Exception as e:
+            print(str(e))
+
+
+    def resseler_add_init(self, bot: telebot.TeleBot ,message:types.Message):
+        try:
+            us_id = bot.send_message(message.chat.id, "Введите id пользователя которому хотите выдать роль реселера")
+            bot.register_next_step_handler (us_id, ressler_add, bot)
+        except Exception as e:
+            print(str(e))
+
+
+    def resseler_del_init(self, bot: telebot.TeleBot ,message:types.Message):
+        try:
+            us_id = bot.send_message(message.chat.id, "Введите id пользователя у которого хотите отобрать роль реселера")
+            bot.register_next_step_handler (us_id, ressler_del, bot)
         except Exception as e:
             print(str(e))
 
@@ -168,7 +206,11 @@ class Work(object):
 
 
 
-
+    def CheckAcc(self, str_, words):
+        for word in words:
+            if word in str_:
+                return True
+        return False
 
 
 
@@ -185,6 +227,43 @@ def unban(message:types.Message, bot: telebot.TeleBot):
         connect.commit()
         bot.send_message(message.chat.id, "Пользователь успешно разбанен")
         bot.send_message(message.text, "Вам восстановлен доступ к услугам!")
+        cur.close()
+        connect.close()
+    except Exception as e:
+        print(str(e))
+
+def ressler_add(message:types.Message, bot: telebot.TeleBot):
+    try:
+        connect = mysql.connector.connect(**config)
+        cur = connect.cursor()
+
+        id = message.text
+
+        cur.execute(f" UPDATE records SET reseller = True WHERE user_id = {id}")
+        connect.commit()
+
+        bot.send_message(message.chat.id, "Пользователю успешно выдана роль ресселлера")
+        bot.send_message(message.text, "Вам выдана роль: Reseller")
+
+        cur.close()
+        connect.close()
+    except Exception as e:
+        print(str(e))
+
+
+def ressler_del(message:types.Message, bot: telebot.TeleBot):
+    try:
+        connect = mysql.connector.connect(**config)
+        cur = connect.cursor()
+
+        id = message.text
+
+        cur.execute(f" UPDATE records SET reseller = False WHERE user_id = {id}")
+        connect.commit()
+
+        bot.send_message(message.chat.id, "У пользователя успешно отобрана роль ресселлера")
+        bot.send_message(message.text, "Вас лиишили роли: Reseller")
+
         cur.close()
         connect.close()
     except Exception as e:
