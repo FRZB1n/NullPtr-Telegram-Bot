@@ -17,6 +17,12 @@ def init(message):
     f.start(bot, message)
 
 
+@bot.message_handler(commands=['help'])
+def help(message):
+    if check_ban(message):
+        return
+    f.help_init(bot, message)
+
 @bot.message_handler(content_types=['text'])
 def txt_handler(message: types.Message):
     if check_ban(message):

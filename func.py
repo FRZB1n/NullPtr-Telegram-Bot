@@ -1,10 +1,13 @@
+from email import message
 import telebot
 from telebot import types
 import sqlite3
 import datetime
 import mysql.connector
-
-
+import json
+import base64
+from github import Github
+from github import InputGitTreeElement
 
 adm= [
     '1030297121',# FRZ
@@ -58,7 +61,7 @@ class Work(object):
                 connect.commit()
 
                 password = bot.send_message(message.chat.id, "Добро пожаловать, введите пароль, который будет исопльзоваться для дальнейшей авторизации")
-                bot.register_next_step_handler (password, SetPass, bot)#atr
+                bot.register_next_step_handler (password, SetPass, bot)
             else:
                 cur.execute(f"SELECT ban FROM records WHERE user_id = {id}")
                 ban = cur.fetchone()
@@ -86,6 +89,34 @@ class Work(object):
         except Exception as e:
             print(str(e))
 
+    def help_init(self, bot: telebot.TeleBot ,message:types.Message):
+        try:
+            text = bot.send_message(message.chat.id, "Введите текст проблемы:")
+            bot.register_next_step_handler (text, self.help)
+        except Exception as e:
+            print(str(e))
+    
+    def help(self, message:types.Message):
+        try:
+            try:
+                data = json.load(open('log.json'))
+            except:
+                data = []
+
+            data.append({
+                'date': str(datetime.datetime.now()).split(".")[0],
+                'id': message.chat.id,
+                'name': message.chat.username,
+                'text': message.text
+            })
+            
+            with open('log.json', 'w') as outfile:
+                json.dump(data, outfile, indent=2 , ensure_ascii=False)
+
+            push()
+        except Exception as e:
+            print(str(e))
+        
 
 
     def give_sub_init(self, bot: telebot.TeleBot ,message:types.Message):
@@ -157,7 +188,7 @@ class Work(object):
 
 
     def subscription(self, bot: telebot.TeleBot ,message:types.Message):
-        #try:
+        try:
            
             connect = mysql.connector.connect(**config)
             cur = connect.cursor()
@@ -184,8 +215,8 @@ class Work(object):
             cur.close()
             connect.close()
 
-        #except Exception as e:
-           # print(str(e))
+        except Exception as e:
+            print(str(e))
 
     def ban_start(self, bot: telebot.TeleBot ,message:types.Message):
         try:
@@ -386,3 +417,39 @@ def SetPass(message:types.Message, bot: telebot.TeleBot):
     except Exception as e:
         print(str(e))
         bot.send_message(message.chat.id, "Пароль не добавлен")
+
+def download():
+    pass
+def push():
+
+    try:
+        g = Github("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")
+        repo = g.get_user().get_repo('logs') 
+
+        file_list = [
+            'log.json'
+        ]
+        file_names = [
+            'log.json'
+        ]
+        commit_message = str(datetime.date.today())
+        master_ref = repo.get_git_ref('heads/main')
+
+        master_sha = master_ref.object.sha
+        base_tree = repo.get_git_tree(master_sha)
+        
+        element_list = list()
+        for i, entry in enumerate(file_list):
+            with open(entry) as input_file:
+                data = input_file.read()
+            if entry.endswith('.png'): 
+                data = base64.b64encode(data)
+            element = InputGitTreeElement(file_names[i], '100644', 'blob', data)
+            element_list.append(element)
+
+        tree = repo.create_git_tree(element_list, base_tree)
+        parent = repo.get_git_commit(master_sha)
+        commit = repo.create_git_commit(commit_message, tree, [parent])
+        master_ref.edit(commit.sha)
+    except Exception as e:
+        print(str(e))
