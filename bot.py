@@ -72,7 +72,12 @@ def txt_handler(message: types.Message):
             f.get_sub_count(bot, message)
         else:
             bot.send_message(message.chat.id, "You aren't accesible")
-        
+    
+    elif message.text == 'Give sub':
+        if status > 0:
+            f.give_sub_init(bot, message)
+        else:
+            bot.send_message(message.chat.id, "You aren't accesible")
 
 
 

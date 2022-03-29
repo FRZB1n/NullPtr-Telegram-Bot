@@ -86,6 +86,22 @@ class Work(object):
         except Exception as e:
             print(str(e))
 
+
+
+    def give_sub_init(self, bot: telebot.TeleBot ,message:types.Message):
+        try:
+            us_id = bot.send_message(message.chat.id, "Введите id пользователя которому хотите выдать подписку")
+            bot.register_next_step_handler (us_id, self.give_sub_date, bot)
+        except Exception as e:
+            print(str(e))
+
+    def give_sub_date(self,message:types.Message, bot: telebot.TeleBot):
+        try:
+            date = bot.send_message(message.chat.id, "Введите дату окончания подписки для пользователя\nПример: 2012-12-01(ГГ-ММ-ДД)")
+            bot.register_next_step_handler (date, give_sub, bot, message.text)
+        except Exception as e:
+            print(str(e))
+
     def get_sub_count(self, bot: telebot.TeleBot ,message:types.Message):
         try:
             connect = mysql.connector.connect(**config)
@@ -141,7 +157,7 @@ class Work(object):
 
 
     def subscription(self, bot: telebot.TeleBot ,message:types.Message):
-        try:
+        #try:
            
             connect = mysql.connector.connect(**config)
             cur = connect.cursor()
@@ -155,7 +171,8 @@ class Work(object):
 
                 cur.execute(f"SELECT time_subscription FROM records WHERE user_id = {id}")
                 date = cur.fetchone()
-                splitted = date[0].split("-")
+                
+                splitted = str(date[0]).split("-")
                 end_date = datetime.date(int(splitted[0]), int(splitted[1]), int(splitted[2]))
             
                 delta_date = end_date - datetime.date.today()
@@ -167,8 +184,8 @@ class Work(object):
             cur.close()
             connect.close()
 
-        except Exception as e:
-            print(str(e))
+        #except Exception as e:
+           # print(str(e))
 
     def ban_start(self, bot: telebot.TeleBot ,message:types.Message):
         try:
@@ -329,6 +346,20 @@ def hwid_res( message:types.Message, bot: telebot.TeleBot ):
 
     except Exception as e:
         print(str(e))
+
+
+def give_sub(message:types.Message, bot: telebot.TeleBot, id):
+    
+    connect = mysql.connector.connect(**config)
+    cur = connect.cursor()
+    inf = [message.text, id]
+    cur.execute("UPDATE records SET time_subscription = %s, has_subscription = True WHERE user_id = %s", inf)
+    connect.commit()
+
+    cur.close()
+    connect.close()
+    bot.send_message(message.chat.id, "Пользователю успешно дана подписка\nОн осведомлён")
+    bot.send_message(id, "Вам продлили подписку до " + str(message.text))
 
 
 def SetPass(message:types.Message, bot: telebot.TeleBot):
