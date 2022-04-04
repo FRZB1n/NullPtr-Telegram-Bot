@@ -1,38 +1,90 @@
 from email import message
+from fileinput import close
+from typing import Dict
 import telebot
 from telebot import types
-import sqlite3
+import requests
 import datetime
 import mysql.connector
 import json
 import base64
 from github import Github
 from github import InputGitTreeElement
+import subprocess
+import os
 
 adm= [
     '1030297121',# FRZ
     '630035056'#HOHOL
 ]
-
+qiwi_token = ""
+next = types.InlineKeyboardMarkup(row_width=2)
+button1 = types.InlineKeyboardButton("Далее", callback_data='next')
+button2 = types.InlineKeyboardButton("Стоп", callback_data='stop')
+next.add(button1, button2)
 
 user_kb = telebot.types.ReplyKeyboardMarkup(True)
 user_kb.row('Buy', 'Change password', 'Subscription')
 
 adm_kb = telebot.types.ReplyKeyboardMarkup(True)
-adm_kb.row('Ban', 'Unban', 'Give sub')
+adm_kb.row('Ban', 'Unban', 'Give sub', 'fix prob')
 adm_kb.row('Give sub count',  'HWID del', 'Reseller add', 'Reseller del')
 
 res_kb = telebot.types.ReplyKeyboardMarkup(True)
 res_kb.row('Give sub', 'HWID del', 'Get sub count')
+
+hack = types.InlineKeyboardMarkup(row_width=2)
+apexbut = types.InlineKeyboardButton("Apex", callback_data='apex')
+valorantbut = types.InlineKeyboardButton("Valorant", callback_data='valorant')
+hack.add(apexbut, valorantbut)
+
+
+time = types.InlineKeyboardMarkup(row_width=3)
+day = types.InlineKeyboardButton("1 day", callback_data='day')
+week = types.InlineKeyboardButton("7 days", callback_data='week')
+month = types.InlineKeyboardButton("31 days", callback_data='month')
+time.add(day, week, month)
+
 config = {
-  'user': 'sql11481321',
-  'password': 'XukZtZlx6b',
+  'user': 'sql11483579',
+  'password': 'gznQv95GYD',
   'host': 'sql11.freemysqlhosting.net',
-  'database': 'sql11481321'
+  'database': 'sql11483579'
 }
+class Oplata(object):
+    def init_pay(self, bot: telebot.TeleBot ,message:types.Message):
+        try:
+            bot.send_message(message.chat.id, "Выберите продукт:", reply_markup=hack)
+        except Exception as e:
+            print(str(e))
+    
+    def valorant_init(self, bot: telebot.TeleBot ,message:types.Message):
+        connect = mysql.connector.connect(**config)
+        cur = connect.cursor()
+        cur.execute(f" UPDATE records SET hack_type = valorant WHERE user_id = {message.chat.id}")
+        connect.commit()
+        bot.send_message(message.chat.id, "Выберите продолжительность подписки:", reply_markup= time)
+        cur.close()
+        connect.close()
+
+    def apex_init(self, bot: telebot.TeleBot ,message:types.Message):
+        connect = mysql.connector.connect(**config)
+        cur = connect.cursor()
+        cur.execute(f" UPDATE records SET hack_type = apex WHERE user_id = {message.chat.id}")
+        connect.commit()
+        bot.send_message(message.chat.id, "Выберите продолжительность подписки:", reply_markup= time)
+        cur.close()
+        connect.close()
+    
+    def rd(self, bot: telebot.TeleBot ,message:types.Message):
+        pass
+
+
+
 class Work(object):
     def start(self, bot: telebot.TeleBot ,message:types.Message):
         try:
+            
             connect = mysql.connector.connect(**config)
             cur = connect.cursor()
             id = message.chat.id
@@ -92,30 +144,70 @@ class Work(object):
     def help_init(self, bot: telebot.TeleBot ,message:types.Message):
         try:
             text = bot.send_message(message.chat.id, "Введите текст проблемы:")
-            bot.register_next_step_handler (text, self.help)
+            bot.register_next_step_handler (text, self.help, bot)
         except Exception as e:
             print(str(e))
     
-    def help(self, message:types.Message):
+    def fixing_problems(self, bot: telebot.TeleBot ,message:types.Message):
         try:
-            try:
-                data = json.load(open('log.json'))
-            except:
-                data = []
-
-            data.append({
-                'date': str(datetime.datetime.now()).split(".")[0],
-                'id': message.chat.id,
-                'name': message.chat.username,
-                'text': message.text
-            })
-            
-            with open('log.json', 'w') as outfile:
-                json.dump(data, outfile, indent=2 , ensure_ascii=False)
-
-            push()
+                       
+            with open('log.json') as json_file:
+                data = json.load(json_file)
+                
+                try:
+                    p = data['rec'][0]
+                except:
+                    bot.send_message(message.chat.id, "Вау! Все вопросы закончились, спасибо за помощь")
+                    return
+                id = p['id']
+                otv =  bot.send_message(message.chat.id, "Date:"+str(p['date'])+"\nName: " + str(p['name']) + "\nID: "+str(p['id']) + "\nProblem:\n"+str(p['text']))
+                del(data['rec'][0])
+                with open('log.json', "w") as json_file:
+                    json.dump(data, json_file, indent=2 , ensure_ascii=False)
+                push()
+                bot.register_next_step_handler(otv, send, bot, id)
+                del(data)
+                          
         except Exception as e:
             print(str(e))
+
+    def download(self):
+    
+        url = 'https://raw.githubusercontent.com/FRZBin/logs/main/log.json' 
+        r = requests.get(url) 
+        with open('D:\\log.json', 'wb') as f: 
+            f.write(r.content) 
+
+    def delete(self):
+        try:
+            path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'log.json')
+            os.remove(path)
+        except Exception as e:
+            print(str(e))
+    def help(self, message:types.Message, bot: telebot.TeleBot):
+            try:
+            
+                try:
+                    data = json.load(open('log.json'))
+                except:
+                    data = {}
+                    data['rec']=[]
+                
+                data['rec'].append({      
+                    'date': str(datetime.datetime.now()).split(".")[0],
+                    'id': message.chat.id,
+                    'name': message.chat.username,
+                    'text': message.text
+                })
+                
+                with open('log.json', 'w') as outfile:
+                    json.dump(data, outfile, indent=2, ensure_ascii=False)
+
+                push()
+                bot.send_message(message.chat.id, "Ваш вопрос отправлен на рассмотрение. Ответ придёт в ближайшее время")
+               
+            except Exception as e:
+                print(str(e))
         
 
 
@@ -418,8 +510,7 @@ def SetPass(message:types.Message, bot: telebot.TeleBot):
         print(str(e))
         bot.send_message(message.chat.id, "Пароль не добавлен")
 
-def download():
-    pass
+
 def push():
 
     try:
@@ -453,3 +544,14 @@ def push():
         master_ref.edit(commit.sha)
     except Exception as e:
         print(str(e))
+
+def send(message:types.Message, bot: telebot.TeleBot, id):
+    bot.send_message(id, "Ответ на ваш недавний вопрос:\n"+ str(message.text))
+    bot.send_message(message.chat.id, "Ответ успешно отправлен", reply_markup=next)
+
+    #path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'logs\\log.json')
+    #os.remove(path)
+    #download()
+
+   
+

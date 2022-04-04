@@ -1,17 +1,21 @@
 from email import message
 from telebot import types
 import telebot
-from func import Work, adm
+from func import Oplata, Work, adm
 import sqlite3
 
+from pyqiwip2p import QiwiP2P
+from pyqiwip2p.p2p_types import QiwiCustomer, QiwiDatetime, PaymentMethods
 
 
 
 
 bot = telebot.TeleBot("5111501194:AAGt_2JJPpvPbT6846bPQj83GhWB7Ju3720")
+pay = Oplata()
 f = Work()
 @bot.message_handler(commands=['start'])
 def init(message):
+    f.download()
     if check_ban(message):
         return
     f.start(bot, message)
@@ -78,13 +82,49 @@ def txt_handler(message: types.Message):
             f.get_sub_count(bot, message)
         else:
             bot.send_message(message.chat.id, "You aren't accesible")
-    
+  
     elif message.text == 'Give sub':
         if status > 0:
             f.give_sub_init(bot, message)
         else:
             bot.send_message(message.chat.id, "You aren't accesible")
+    elif message.text == 'fix prob':
+        if status > 1:
+            f.download()#ISSUE FIXED
+            f.fixing_problems(bot, message)
+        else:
+            bot.send_message(message.chat.id, "You aren't accesible")
 
+    elif message.text == 'fix prob':
+       pay.init_pay(bot, message)
+            
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback_inline(call):
+
+    if call.message:
+        if call.data == "next":
+            f.fixing_problems(bot, call.message)
+        elif call.data == "stop":
+            bot.send_message(call.message.chat.id, "Спасибо за помощь!")
+        elif call.data == "apex":
+            pay.apex_init(bot, call.message)
+        elif call.data == "valorant":
+            pay.valorant_init(bot, call.message)
+
+        elif call.data == "day":
+            pay.valorant_init(bot, call.message)
+        elif call.data == "week":
+            pay.valorant_init(bot, call.message)
+        elif call.data == "month":
+            pay.valorant_init(bot, call.message)
+            
+
+
+            
+
+  
 
 
 def check_ban(message: types.Message):
