@@ -12,12 +12,15 @@ from github import Github
 from github import InputGitTreeElement
 import subprocess
 import os
+from pyqiwip2p import QiwiP2P
+from pyqiwip2p.p2p_types import QiwiCustomer, QiwiDatetime, PaymentMethods
 
 adm= [
     '1030297121',# FRZ
     '630035056'#HOHOL
 ]
-qiwi_token = ""
+#qiwi = "3c5c3a72a054d3890c8bce0cb64faeb4".encode("utf-8")
+
 next = types.InlineKeyboardMarkup(row_width=2)
 button1 = types.InlineKeyboardButton("Далее", callback_data='next')
 button2 = types.InlineKeyboardButton("Стоп", callback_data='stop')
@@ -38,6 +41,8 @@ apexbut = types.InlineKeyboardButton("Apex", callback_data='apex')
 valorantbut = types.InlineKeyboardButton("Valorant", callback_data='valorant')
 hack.add(apexbut, valorantbut)
 
+#hack = telebot.types.ReplyKeyboardMarkup(True)
+#hack.row("Apex", "Valorant")
 
 time = types.InlineKeyboardMarkup(row_width=3)
 day = types.InlineKeyboardButton("1 day", callback_data='day')
@@ -45,39 +50,114 @@ week = types.InlineKeyboardButton("7 days", callback_data='week')
 month = types.InlineKeyboardButton("31 days", callback_data='month')
 time.add(day, week, month)
 
+pay_check = types.InlineKeyboardMarkup(row_width=1)
+Done = types.InlineKeyboardButton("Done", callback_data='done')
+pay_check.add(Done)
+
 config = {
   'user': 'sql11483579',
   'password': 'gznQv95GYD',
   'host': 'sql11.freemysqlhosting.net',
   'database': 'sql11483579'
 }
+
 class Oplata(object):
     def init_pay(self, bot: telebot.TeleBot ,message:types.Message):
+        
         try:
             bot.send_message(message.chat.id, "Выберите продукт:", reply_markup=hack)
+            
         except Exception as e:
             print(str(e))
     
+
     def valorant_init(self, bot: telebot.TeleBot ,message:types.Message):
         connect = mysql.connector.connect(**config)
         cur = connect.cursor()
-        cur.execute(f" UPDATE records SET hack_type = valorant WHERE user_id = {message.chat.id}")
+
+        inf = ["valorant", message.chat.id]   
+        cur.execute("UPDATE records SET hack_type = %s WHERE user_id = %s", inf)
         connect.commit()
+
         bot.send_message(message.chat.id, "Выберите продолжительность подписки:", reply_markup= time)
+
         cur.close()
         connect.close()
 
     def apex_init(self, bot: telebot.TeleBot ,message:types.Message):
         connect = mysql.connector.connect(**config)
         cur = connect.cursor()
-        cur.execute(f" UPDATE records SET hack_type = apex WHERE user_id = {message.chat.id}")
-        connect.commit()
+
+
+        inf = ["apex", message.chat.id]   
+        cur.execute("UPDATE records SET hack_type = %s WHERE user_id = %s", inf)
+        connect.commit()    
+
         bot.send_message(message.chat.id, "Выберите продолжительность подписки:", reply_markup= time)
+
         cur.close()
         connect.close()
     
-    def rd(self, bot: telebot.TeleBot ,message:types.Message):
-        pass
+    def time_step(self, bot: telebot.TeleBot ,message:types.Message, data):
+        
+        p2p = QiwiP2P(auth_key="eyJ2ZXJzaW9uIjoiUDJQIiwiZGF0YSI6eyJwYXlpbl9tZXJjaGFudF9zaXRlX3VpZCI6IjBqa3Roay0wMCIsInVzZXJfaWQiOiI3OTk1MTI0ODU3NCIsInNlY3JldCI6ImRjMjk3NzkwYTAyNDVjMzZmM2MyMTJiYmQwZTEwMWQ1Y2VjZDRmMTVhOTVlMWQxZjQxZDI0ZmU5YjNjNjRmYmUifX0=")
+        connect = mysql.connector.connect(**config)
+        cur = connect.cursor()
+
+        cur.execute(f"SELECT hack_type FROM records WHERE user_id = {message.chat.id}")
+        hack_type = cur.fetchone()
+        stro  = hack_type[0]
+       
+       
+        match str(stro).removeprefix("b'").removesuffix("'"):
+            case "valorant":
+                print("v")
+                
+                match str(data):
+                    case "day":
+                        bill = p2p.bill(amount=1, lifetime=15)
+                        bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
+                        print(p2p.check(bill_id=bill.bill_id).status)
+                    case "week":
+                        bill = p2p.bill(amount=2, lifetime=15)
+                        bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
+                    case "month":
+                        bill = p2p.bill(amount=3, lifetime=15)
+                        bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
+            case "apex":
+                print("a")
+                match str(data):
+                    case "day":
+                        bill = p2p.bill(amount=11, lifetime=15)
+                        bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
+                    case "week":
+                        bill = p2p.bill(amount=22, lifetime=15)
+                        bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
+                    case "month":
+                        bill = p2p.bill(amount=33, lifetime=15)
+                        bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
+                        print()
+        return bill, data
+
+    def Check_bill(self, bot: telebot.TeleBot ,message:types.Message, bill, dateend):
+        p2p = QiwiP2P(auth_key="eyJ2ZXJzaW9uIjoiUDJQIiwiZGF0YSI6eyJwYXlpbl9tZXJjaGFudF9zaXRlX3VpZCI6IjBqa3Roay0wMCIsInVzZXJfaWQiOiI3OTk1MTI0ODU3NCIsInNlY3JldCI6ImRjMjk3NzkwYTAyNDVjMzZmM2MyMTJiYmQwZTEwMWQ1Y2VjZDRmMTVhOTVlMWQxZjQxZDI0ZmU5YjNjNjRmYmUifX0=")
+        
+        connect = mysql.connector.connect(**config)
+        cur = connect.cursor()
+
+        print(dateend)
+
+        match str(p2p.check(bill_id=bill.bill_id).status):
+            case "WAITING":
+                bot.send_message(message.chat.id, "Платеж не прошел\n"+str(bill.pay_url),reply_markup=pay_check)
+            case "PAID":
+                bot.send_message(message.chat.id, "URA!")
+
+
+
+        
+
+        
 
 
 

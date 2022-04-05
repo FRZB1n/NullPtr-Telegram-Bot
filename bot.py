@@ -95,7 +95,7 @@ def txt_handler(message: types.Message):
         else:
             bot.send_message(message.chat.id, "You aren't accesible")
 
-    elif message.text == 'fix prob':
+    elif message.text == 'Buy':
        pay.init_pay(bot, message)
             
 
@@ -103,22 +103,34 @@ def txt_handler(message: types.Message):
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
 
+    v = call.data
+    global billn
     if call.message:
-        if call.data == "next":
-            f.fixing_problems(bot, call.message)
-        elif call.data == "stop":
-            bot.send_message(call.message.chat.id, "Спасибо за помощь!")
-        elif call.data == "apex":
-            pay.apex_init(bot, call.message)
-        elif call.data == "valorant":
-            pay.valorant_init(bot, call.message)
+        match v:
+            case "next":
+                f.fixing_problems(bot, call.message)
+                
+            case "stop":
+                bot.send_message(call.message.chat.id, "Спасибо за помощь!")
+            case "apex":
+                bot.delete_message(call.message.chat.id, call.message.id)
+                pay.apex_init(bot, call.message)
+            case "valorant":
+                bot.delete_message(call.message.chat.id, call.message.id)
+                pay.valorant_init(bot, call.message)
 
-        elif call.data == "day":
-            pay.valorant_init(bot, call.message)
-        elif call.data == "week":
-            pay.valorant_init(bot, call.message)
-        elif call.data == "month":
-            pay.valorant_init(bot, call.message)
+            case "day":
+                bot.delete_message(call.message.chat.id, call.message.id)
+                billn = pay.time_step(bot, call.message, v)
+            case "week":
+                bot.delete_message(call.message.chat.id, call.message.id)
+                billn = pay.time_step(bot, call.message, v)
+            case "month":
+                bot.delete_message(call.message.chat.id, call.message.id)
+                billn = pay.time_step(bot, call.message, v)
+            case "done":
+                bot.delete_message(call.message.chat.id, call.message.id)
+                pay.Check_bill(bot, call.message, billn[0], billn[1])
             
 
 
