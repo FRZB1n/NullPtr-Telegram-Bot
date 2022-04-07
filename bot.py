@@ -15,10 +15,11 @@ pay = Oplata()
 f = Work()
 @bot.message_handler(commands=['start'])
 def init(message):
-    f.download()
+
     if check_ban(message):
         return
     f.start(bot, message)
+    #f.j(bot, message)
 
 
 @bot.message_handler(commands=['help'])

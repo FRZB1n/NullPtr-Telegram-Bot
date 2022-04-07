@@ -137,36 +137,78 @@ class Oplata(object):
                         bill = p2p.bill(amount=33, lifetime=15)
                         bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
                         print()
+        cur.close()
+        connect.close()
         return bill, data
 
     def Check_bill(self, bot: telebot.TeleBot ,message:types.Message, bill, dateend):
         p2p = QiwiP2P(auth_key="eyJ2ZXJzaW9uIjoiUDJQIiwiZGF0YSI6eyJwYXlpbl9tZXJjaGFudF9zaXRlX3VpZCI6IjBqa3Roay0wMCIsInVzZXJfaWQiOiI3OTk1MTI0ODU3NCIsInNlY3JldCI6ImRjMjk3NzkwYTAyNDVjMzZmM2MyMTJiYmQwZTEwMWQ1Y2VjZDRmMTVhOTVlMWQxZjQxZDI0ZmU5YjNjNjRmYmUifX0=")
         
-        connect = mysql.connector.connect(**config)
-        cur = connect.cursor()
-
-        print(dateend)
-
+        
+        
+        
         match str(p2p.check(bill_id=bill.bill_id).status):
             case "WAITING":
                 bot.send_message(message.chat.id, "Платеж не прошел\n"+str(bill.pay_url),reply_markup=pay_check)
             case "PAID":
-                bot.send_message(message.chat.id, "URA!")
+                bot.send_message(message.chat.id, "Платеж успешно совершен")
+                self.give_payed_sub(bot, message, dateend)
 
 
 
         
 
-        
+    def give_payed_sub(self, bot: telebot.TeleBot ,message:types.Message, dateend):
+        connect = mysql.connector.connect(**config)
+        cur = connect.cursor()
+        #2012-12-01(ГГ-ММ-ДД)
+        cur.execute(f"SELECT time_subscription FROM records WHERE user_id = {message.chat.id}")
+        date = cur.fetchone()
+        print(date)
+        if date[0] is None:
+            end_date = datetime.date.today()
+            
+        else:
+            splitted = str(date[0]).split("-")
+            end = datetime.date(int(splitted[0]), int(splitted[1]), int(splitted[2]))
+            if end < datetime.date.today():
+                end_date = datetime.date.today()
+            else:
+                end_date = end
+
+
+
+        match str(dateend):
+            case "day":
+                dik = datetime.date(end_date.year, end_date.month, end_date.day+1)
+                inf = [dik, message.chat.id]
+                cur.execute("UPDATE records SET time_subscription = %s, has_subscription = True WHERE user_id = %s", inf)
+                connect.commit()
+                
+            case "week":
+                dik = datetime.date(end_date.year, end_date.month, end_date.day+7)
+                inf = [dik, message.chat.id]
+                cur.execute("UPDATE records SET time_subscription = %s, has_subscription = True WHERE user_id = %s", inf)
+                connect.commit()
+                
+            case "month":
+                dik = datetime.date(end_date.year, end_date.month, end_date.day+31)
+                inf = [dik, message.chat.id]
+                cur.execute("UPDATE records SET time_subscription = %s, has_subscription = True WHERE user_id = %s", inf)
+                connect.commit()
+        cur.close()
+        connect.close()
+                
 
 
 
 class Work(object):
     def start(self, bot: telebot.TeleBot ,message:types.Message):
         try:
-            
             connect = mysql.connector.connect(**config)
             cur = connect.cursor()
+            #cur.close()
+            #connect.close()
             id = message.chat.id
             cur.execute("""CREATE TABLE IF NOT EXISTS records(
                 user_id INTEGER NOT NULL,
@@ -215,8 +257,8 @@ class Work(object):
                 else:
                     bot.send_message(id, "С возвращением " + str(message.chat.username) + "!", reply_markup= user_kb)
                 
-                cur.close()
-                connect.close()
+            cur.close()
+            connect.close()
                     
         except Exception as e:
             print(str(e))
@@ -255,7 +297,7 @@ class Work(object):
     
         url = 'https://raw.githubusercontent.com/FRZBin/logs/main/log.json' 
         r = requests.get(url) 
-        with open('D:\\log.json', 'wb') as f: 
+        with open('log.json', 'wb') as f: 
             f.write(r.content) 
 
     def delete(self):
@@ -313,7 +355,8 @@ class Work(object):
             cur.execute(f"SELECT reseller_sub_count FROM records WHERE user_id = {id}")
             res = cur.fetchone()
             bot.send_message(id, "Всего возможностей выдать подписок: " + str(res[0]))
-
+            cur.close()
+            connect.close()
         except Exception as e:
             print(str(e))
 
@@ -345,7 +388,7 @@ class Work(object):
             
             sub_count = bot.send_message(message.chat.id, "Введите количество подписок возможных для выдачи юзером с id = " + str(message.text))
             bot.register_next_step_handler (sub_count, give_sub_count, bot, message.text)
-            pass
+
         except Exception as e:
             print(str(e))
         
@@ -357,10 +400,19 @@ class Work(object):
         except Exception as e:
             print(str(e))
 
-
+    def j(self, bot: telebot.TeleBot ,message:types.Message):
+        connect = mysql.connector.connect(**config)
+        cur = connect.cursor()
+        dak = datetime.date(2022, 3, 12)
+        
+        inf = [dak, message.chat.id]
+        cur.execute("UPDATE records SET time_subscription = %s, has_subscription = True WHERE user_id = %s", inf)
+        connect.commit()
+        cur.close()
+        connect.close()
 
     def subscription(self, bot: telebot.TeleBot ,message:types.Message):
-        try:
+        #try:
            
             connect = mysql.connector.connect(**config)
             cur = connect.cursor()
@@ -376,19 +428,25 @@ class Work(object):
                 date = cur.fetchone()
                 
                 splitted = str(date[0]).split("-")
-                end_date = datetime.date(int(splitted[0]), int(splitted[1]), int(splitted[2]))
+                try:
+                    end_date = datetime.date(int(splitted[0]), int(splitted[1]), int(splitted[2]))
+                except Exception as e:
+                    print(str(e))
             
                 delta_date = end_date - datetime.date.today()
-
-                bot.send_message(id, "Your subscription expiried at " + str(date[0]) + "\nDays left: " + str(delta_date.days))
+                if end_date < datetime.date.today():
+                    bot.send_message(id, "You haven't got any subscriptions yet")
+                    print('d')
+                else:
+                    bot.send_message(id, "Your subscription expiried at " + str(date[0]) + "\nDays left: " + str(delta_date.days))
             else:
                 bot.send_message(id, "You haven't got any subscriptions yet")
 
             cur.close()
             connect.close()
 
-        except Exception as e:
-            print(str(e))
+        #except Exception as e:
+            #print(str(e))
 
     def ban_start(self, bot: telebot.TeleBot ,message:types.Message):
         try:
@@ -420,7 +478,7 @@ class Work(object):
                 return 1
             else:
                 return 0
-            
+
         except Exception as e:
             print(str(e))
 
