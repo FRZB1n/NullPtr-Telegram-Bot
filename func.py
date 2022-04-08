@@ -250,12 +250,20 @@ class Work(object):
                
                 if self.CheckAcc(str(message.chat.id), adm):
                     bot.send_message(id, "С возвращением " + str(message.chat.username) + "!", reply_markup= adm_kb)
+                    cur.close()
+                    connect.close()
                 elif prev[0] == True:
                     bot.send_message(id, "С возвращением " + str(message.chat.username) + "!", reply_markup= adm_kb)
+                    cur.close()
+                    connect.close()
                 elif prev[1] == True:
                     bot.send_message(id, "С возвращением " + str(message.chat.username) + "!", reply_markup= res_kb)
+                    cur.close()
+                    connect.close()
                 else:
                     bot.send_message(id, "С возвращением " + str(message.chat.username) + "!", reply_markup= user_kb)
+                    cur.close()
+                    connect.close()
                 
             cur.close()
             connect.close()
