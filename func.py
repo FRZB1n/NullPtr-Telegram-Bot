@@ -412,7 +412,7 @@ class Work(object):
         connect.close()
 
     def subscription(self, bot: telebot.TeleBot ,message:types.Message):
-        #try:
+        #try:s
            
             connect = mysql.connector.connect(**config)
             cur = connect.cursor()
