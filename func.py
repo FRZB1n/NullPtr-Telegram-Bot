@@ -115,26 +115,26 @@ class Oplata(object):
                 
                 match str(data):
                     case "day":
-                        bill = p2p.bill(amount=1, lifetime=15)
+                        bill = p2p.bill(amount=800, lifetime=15)
                         bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
                         print(p2p.check(bill_id=bill.bill_id).status)
                     case "week":
-                        bill = p2p.bill(amount=2, lifetime=15)
+                        bill = p2p.bill(amount=2000, lifetime=15)
                         bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
                     case "month":
-                        bill = p2p.bill(amount=3, lifetime=15)
+                        bill = p2p.bill(amount=6400, lifetime=15)
                         bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
             case "apex":
                 print("a")
                 match str(data):
                     case "day":
-                        bill = p2p.bill(amount=11, lifetime=15)
+                        bill = p2p.bill(amount=400, lifetime=15)
                         bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
                     case "week":
-                        bill = p2p.bill(amount=22, lifetime=15)
+                        bill = p2p.bill(amount=1200, lifetime=15)
                         bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
                     case "month":
-                        bill = p2p.bill(amount=33, lifetime=15)
+                        bill = p2p.bill(amount=3200, lifetime=15)
                         bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
                         print()
         cur.close()
