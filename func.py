@@ -1,6 +1,3 @@
-from email import message
-from fileinput import close
-from typing import Dict
 import telebot
 from telebot import types
 import requests
@@ -10,17 +7,15 @@ import json
 import base64
 from github import Github
 from github import InputGitTreeElement
-import subprocess
 import os
 from pyqiwip2p import QiwiP2P
-from pyqiwip2p.p2p_types import QiwiCustomer, QiwiDatetime, PaymentMethods
 
 adm= [
     '1030297121',# FRZ
     '630035056'#HOHOL
 ]
-#qiwi = "3c5c3a72a054d3890c8bce0cb64faeb4".encode("utf-8")
 
+#--------------------------------KB ZONE---------------------------------
 next = types.InlineKeyboardMarkup(row_width=2)
 button1 = types.InlineKeyboardButton("Далее", callback_data='next')
 button2 = types.InlineKeyboardButton("Стоп", callback_data='stop')
@@ -53,7 +48,7 @@ time.add(day, week, month)
 pay_check = types.InlineKeyboardMarkup(row_width=1)
 Done = types.InlineKeyboardButton("Done", callback_data='done')
 pay_check.add(Done)
-
+#------------------------------------------------------------------------
 config = {
   'user': 'sql11483579',
   'password': 'gznQv95GYD',
@@ -63,7 +58,7 @@ config = {
 
 class Oplata(object):
     def init_pay(self, bot: telebot.TeleBot ,message:types.Message):
-        
+        """THE HARDEST FUNC"""    
         try:
             bot.send_message(message.chat.id, "Выберите продукт:", reply_markup=hack)
             
@@ -72,76 +67,91 @@ class Oplata(object):
     
 
     def valorant_init(self, bot: telebot.TeleBot ,message:types.Message):
-        connect = mysql.connector.connect(**config)
-        cur = connect.cursor()
+        """VALORANT PAY INITION"""
+        try:
+            connect = mysql.connector.connect(**config)
+            cur = connect.cursor()
 
-        inf = ["valorant", message.chat.id]   
-        cur.execute("UPDATE records SET hack_type = %s WHERE user_id = %s", inf)
-        connect.commit()
+            inf = ["valorant", message.chat.id]   
+            cur.execute("UPDATE records SET hack_type = %s WHERE user_id = %s", inf)
+            connect.commit()
 
-        bot.send_message(message.chat.id, "Выберите продолжительность подписки:", reply_markup= time)
+            bot.send_message(message.chat.id, "Выберите продолжительность подписки:", reply_markup= time)
 
-        cur.close()
-        connect.close()
+            cur.close()
+            connect.close()
+        except Exception as e:
+            print(str(e))
+
 
     def apex_init(self, bot: telebot.TeleBot ,message:types.Message):
-        connect = mysql.connector.connect(**config)
-        cur = connect.cursor()
+        """APEX PAY INITION"""
+        try:
+            connect = mysql.connector.connect(**config)
+            cur = connect.cursor()
 
 
-        inf = ["apex", message.chat.id]   
-        cur.execute("UPDATE records SET hack_type = %s WHERE user_id = %s", inf)
-        connect.commit()    
+            inf = ["apex", message.chat.id]   
+            cur.execute("UPDATE records SET hack_type = %s WHERE user_id = %s", inf)
+            connect.commit()    
 
-        bot.send_message(message.chat.id, "Выберите продолжительность подписки:", reply_markup= time)
+            bot.send_message(message.chat.id, "Выберите продолжительность подписки:", reply_markup= time)
 
-        cur.close()
-        connect.close()
+            cur.close()
+            connect.close()
+        except Exception as e:
+            print(str(e))
     
     def time_step(self, bot: telebot.TeleBot ,message:types.Message, data):
-        
-        p2p = QiwiP2P(auth_key="eyJ2ZXJzaW9uIjoiUDJQIiwiZGF0YSI6eyJwYXlpbl9tZXJjaGFudF9zaXRlX3VpZCI6IjBqa3Roay0wMCIsInVzZXJfaWQiOiI3OTk1MTI0ODU3NCIsInNlY3JldCI6ImRjMjk3NzkwYTAyNDVjMzZmM2MyMTJiYmQwZTEwMWQ1Y2VjZDRmMTVhOTVlMWQxZjQxZDI0ZmU5YjNjNjRmYmUifX0=")
-        connect = mysql.connector.connect(**config)
-        cur = connect.cursor()
+        """BILL GENERATING"""
+        try:
+            p2p = QiwiP2P(auth_key="eyJ2ZXJzaW9uIjoiUDJQIiwiZGF0YSI6eyJwYXlpbl9tZXJjaGFudF9zaXRlX3VpZCI6IjBqa3Roay0wMCIsInVzZXJfaWQiOiI3OTk1MTI0ODU3NCIsInNlY3JldCI6ImRjMjk3NzkwYTAyNDVjMzZmM2MyMTJiYmQwZTEwMWQ1Y2VjZDRmMTVhOTVlMWQxZjQxZDI0ZmU5YjNjNjRmYmUifX0=")
+            connect = mysql.connector.connect(**config)
+            cur = connect.cursor()
 
-        cur.execute(f"SELECT hack_type FROM records WHERE user_id = {message.chat.id}")
-        hack_type = cur.fetchone()
-        stro  = hack_type[0]
-       
-       
-        match str(stro).removeprefix("b'").removesuffix("'"):
-            case "valorant":
-                print("v")
-                
-                match str(data):
-                    case "day":
-                        bill = p2p.bill(amount=800, lifetime=15)
-                        bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
-                        print(p2p.check(bill_id=bill.bill_id).status)
-                    case "week":
-                        bill = p2p.bill(amount=2000, lifetime=15)
-                        bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
-                    case "month":
-                        bill = p2p.bill(amount=6400, lifetime=15)
-                        bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
-            case "apex":
-                print("a")
-                match str(data):
-                    case "day":
-                        bill = p2p.bill(amount=400, lifetime=15)
-                        bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
-                    case "week":
-                        bill = p2p.bill(amount=1200, lifetime=15)
-                        bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
-                    case "month":
-                        bill = p2p.bill(amount=3200, lifetime=15)
-                        bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
-                        print()
-        cur.close()
-        connect.close()
-        return bill, data
+            cur.execute(f"SELECT hack_type FROM records WHERE user_id = {message.chat.id}")
+            hack_type = cur.fetchone()
+            stro  = hack_type[0]
+        
+            cur.close()
+            connect.close()
+
+            match str(stro).removeprefix("b'").removesuffix("'"):
+                case "valorant":
+                            
+                    match str(data):
+                        case "day":
+                            bill = p2p.bill(amount=1, lifetime=15)#800
+                            bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
+                            
+                        case "week":
+                            bill = p2p.bill(amount=2000, lifetime=15)
+                            bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
+                        case "month":
+                            bill = p2p.bill(amount=6400, lifetime=15)
+                            bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
+                case "apex":
+                    
+                    match str(data):
+                        case "day":
+                            bill = p2p.bill(amount=400, lifetime=15)
+                            bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
+                        case "week":
+                            bill = p2p.bill(amount=1200, lifetime=15)
+                            bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
+                        case "month":
+                            bill = p2p.bill(amount=3200, lifetime=15)
+                            bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
+                        
+        
+            return bill, data
+        except Exception as e:
+            cur.close()
+            connect.close()
+            print(str(e))
 
     def Check_bill(self, bot: telebot.TeleBot ,message:types.Message, bill, dateend):
+        """BILL CHECKING"""
         p2p = QiwiP2P(auth_key="eyJ2ZXJzaW9uIjoiUDJQIiwiZGF0YSI6eyJwYXlpbl9tZXJjaGFudF9zaXRlX3VpZCI6IjBqa3Roay0wMCIsInVzZXJfaWQiOiI3OTk1MTI0ODU3NCIsInNlY3JldCI6ImRjMjk3NzkwYTAyNDVjMzZmM2MyMTJiYmQwZTEwMWQ1Y2VjZDRmMTVhOTVlMWQxZjQxZDI0ZmU5YjNjNjRmYmUifX0=")
         
         
@@ -159,56 +169,69 @@ class Oplata(object):
         
 
     def give_payed_sub(self, bot: telebot.TeleBot ,message:types.Message, dateend):
-        connect = mysql.connector.connect(**config)
-        cur = connect.cursor()
-        #2012-12-01(ГГ-ММ-ДД)
-        cur.execute(f"SELECT time_subscription FROM records WHERE user_id = {message.chat.id}")
-        date = cur.fetchone()
-        print(date)
-        if date[0] is None:
-            end_date = datetime.date.today()
+        """GIVING SUB FOR DUMB PENDOS WITH A LOT OF SHITTY CHEKS"""
+        try:
+            connect = mysql.connector.connect(**config)
+            cur = connect.cursor()
+            #2012-12-01(ГГ-ММ-ДД)
+            cur.execute(f"SELECT time_subscription FROM records WHERE user_id = {message.chat.id}")
+            date = cur.fetchone()
             
-        else:
-            splitted = str(date[0]).split("-")
-            end = datetime.date(int(splitted[0]), int(splitted[1]), int(splitted[2]))
-            if end < datetime.date.today():
+            if date[0] is None:
                 end_date = datetime.date.today()
+                
             else:
-                end_date = end
+                splitted = str(date[0]).split("-")
+                end = datetime.date(int(splitted[0]), int(splitted[1]), int(splitted[2]))
+                if end < datetime.date.today():
+                    end_date = datetime.date.today()
+                else:
+                    end_date = end
 
 
 
-        match str(dateend):
-            case "day":
-                dik = datetime.date(end_date.year, end_date.month, end_date.day+1)
-                inf = [dik, message.chat.id]
-                cur.execute("UPDATE records SET time_subscription = %s, has_subscription = True WHERE user_id = %s", inf)
-                connect.commit()
-                
-            case "week":
-                dik = datetime.date(end_date.year, end_date.month, end_date.day+7)
-                inf = [dik, message.chat.id]
-                cur.execute("UPDATE records SET time_subscription = %s, has_subscription = True WHERE user_id = %s", inf)
-                connect.commit()
-                
-            case "month":
-                dik = datetime.date(end_date.year, end_date.month, end_date.day+31)
-                inf = [dik, message.chat.id]
-                cur.execute("UPDATE records SET time_subscription = %s, has_subscription = True WHERE user_id = %s", inf)
-                connect.commit()
-        cur.close()
-        connect.close()
+            match str(dateend):
+                case "day":
+                    dik = datetime.date(end_date.year, end_date.month, end_date.day+1)
+                    inf = [dik, message.chat.id]
+                    cur.execute("UPDATE records SET time_subscription = %s, has_subscription = True WHERE user_id = %s", inf)
+                    connect.commit()
+                    cur.close()
+                    connect.close()
+                    
+                case "week":
+                    dik = datetime.date(end_date.year, end_date.month, end_date.day+7)
+                    inf = [dik, message.chat.id]
+                    cur.execute("UPDATE records SET time_subscription = %s, has_subscription = True WHERE user_id = %s", inf)
+                    connect.commit()
+                    cur.close()
+                    connect.close()
+                    
+                case "month":
+                    dik = datetime.date(end_date.year, end_date.month, end_date.day+31)
+                    inf = [dik, message.chat.id]
+                    cur.execute("UPDATE records SET time_subscription = %s, has_subscription = True WHERE user_id = %s", inf)
+                    connect.commit()
+                    cur.close()
+                    connect.close()
+
+            cur.close()
+            connect.close()
+        except Exception as e:
+            cur.close()
+            connect.close()
+            print(str(e))
                 
 
 
 
 class Work(object):
     def start(self, bot: telebot.TeleBot ,message:types.Message):
+        """SHITTY START FUNC TO REG OR WELCOME USER"""
         try:
             connect = mysql.connector.connect(**config)
             cur = connect.cursor()
-            #cur.close()
-            #connect.close()
+
             id = message.chat.id
             cur.execute("""CREATE TABLE IF NOT EXISTS records(
                 user_id INTEGER NOT NULL,
@@ -269,9 +292,12 @@ class Work(object):
             connect.close()
                     
         except Exception as e:
+            cur.close()
+            connect.close()
             print(str(e))
 
     def help_init(self, bot: telebot.TeleBot ,message:types.Message):
+        """MAKING QUESTION"""
         try:
             text = bot.send_message(message.chat.id, "Введите текст проблемы:")
             bot.register_next_step_handler (text, self.help, bot)
@@ -279,69 +305,72 @@ class Work(object):
             print(str(e))
     
     def fixing_problems(self, bot: telebot.TeleBot ,message:types.Message):
+        """ANSWERING FOR TICKET SYSTEM"""
         try:
                        
-            with open('log.json') as json_file:
-                data = json.load(json_file)
+            with open('log.json') as json_file:#opening questions
+                data = json.load(json_file)#reading file
                 
                 try:
-                    p = data['rec'][0]
+                    p = data['rec'][0]#trying to get first question(reale queue XD)
                 except:
-                    bot.send_message(message.chat.id, "Вау! Все вопросы закончились, спасибо за помощь")
+                    bot.send_message(message.chat.id, "Вау! Все вопросы закончились, спасибо за помощь")#if first(0 index) write is emty that means we haven't got any questions
                     return
-                id = p['id']
-                otv =  bot.send_message(message.chat.id, "Date:"+str(p['date'])+"\nName: " + str(p['name']) + "\nID: "+str(p['id']) + "\nProblem:\n"+str(p['text']))
-                del(data['rec'][0])
+
+                id = p['id']#getting id of bustard to send him answer
+                otv =  bot.send_message(message.chat.id, "Date:"+str(p['date'])+"\nName: " + str(p['name']) + "\nID: "+str(p['id']) + "\nProblem:\n"+str(p['text']))#inf about question(send to adm)
+                del(data['rec'][0])#del first question
                 with open('log.json', "w") as json_file:
-                    json.dump(data, json_file, indent=2 , ensure_ascii=False)
-                push()
-                bot.register_next_step_handler(otv, send, bot, id)
-                del(data)
+                    json.dump(data, json_file, indent=2 , ensure_ascii=False)#rewrite new question file
+                push()#push this file
+                bot.register_next_step_handler(otv, send, bot, id)#sending answer for our bustard
+                del(data)#del data for reduce shit with repeating answer
                           
         except Exception as e:
             print(str(e))
 
     def download(self):
-    
+        """DOWNLOADING FRESH TICKETS"""
         url = 'https://raw.githubusercontent.com/FRZBin/logs/main/log.json' 
         r = requests.get(url) 
         with open('log.json', 'wb') as f: 
             f.write(r.content) 
 
-    def delete(self):
+    def change_pass(seld, bot: telebot.TeleBot ,message:types.Message):#AHHAHA GENIUS
+        pas = bot.send_message(message.chat.id, "Введите новый пароль:")
+        bot.register_next_step_handler(pas, SetPass, bot)
+        
+
+    def help(self, message:types.Message, bot: telebot.TeleBot):
+        """TICKET SYSTEM ADDING"""
         try:
-            path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'log.json')
-            os.remove(path)
+        
+            try:
+                data = json.load(open('log.json'))
+            except:
+                data = {}
+                data['rec']=[]
+            
+            data['rec'].append({      
+                'date': str(datetime.datetime.now()).split(".")[0],
+                'id': message.chat.id,
+                'name': message.chat.username,
+                'text': message.text
+            })
+            
+            with open('log.json', 'w') as outfile:
+                json.dump(data, outfile, indent=2, ensure_ascii=False)
+
+            push()
+            bot.send_message(message.chat.id, "Ваш вопрос отправлен на рассмотрение. Ответ придёт в ближайшее время")
+            
         except Exception as e:
             print(str(e))
-    def help(self, message:types.Message, bot: telebot.TeleBot):
-            try:
-            
-                try:
-                    data = json.load(open('log.json'))
-                except:
-                    data = {}
-                    data['rec']=[]
-                
-                data['rec'].append({      
-                    'date': str(datetime.datetime.now()).split(".")[0],
-                    'id': message.chat.id,
-                    'name': message.chat.username,
-                    'text': message.text
-                })
-                
-                with open('log.json', 'w') as outfile:
-                    json.dump(data, outfile, indent=2, ensure_ascii=False)
-
-                push()
-                bot.send_message(message.chat.id, "Ваш вопрос отправлен на рассмотрение. Ответ придёт в ближайшее время")
-               
-            except Exception as e:
-                print(str(e))
         
 
 
     def give_sub_init(self, bot: telebot.TeleBot ,message:types.Message):
+        """GETTING USER'S ID FOR SUB GIVING"""
         try:
             us_id = bot.send_message(message.chat.id, "Введите id пользователя которому хотите выдать подписку")
             bot.register_next_step_handler (us_id, self.give_sub_date, bot)
@@ -349,6 +378,7 @@ class Work(object):
             print(str(e))
 
     def give_sub_date(self,message:types.Message, bot: telebot.TeleBot):
+        """GETTING END DATE FOR SUB GIVING"""
         try:
             date = bot.send_message(message.chat.id, "Введите дату окончания подписки для пользователя\nПример: 2012-12-01(ГГ-ММ-ДД)")
             bot.register_next_step_handler (date, give_sub, bot, message.text)
@@ -356,6 +386,7 @@ class Work(object):
             print(str(e))
 
     def get_sub_count(self, bot: telebot.TeleBot ,message:types.Message):
+        """GETTING SUB COUNT"""
         try:
             connect = mysql.connector.connect(**config)
             cur = connect.cursor()
@@ -366,10 +397,13 @@ class Work(object):
             cur.close()
             connect.close()
         except Exception as e:
+            cur.close()
+            connect.close()
             print(str(e))
 
 
     def resseler_add_init(self, bot: telebot.TeleBot ,message:types.Message):
+        """GETTING USER'S ID FOR RESSELER ADDING"""
         try:
             us_id = bot.send_message(message.chat.id, "Введите id пользователя которому хотите выдать роль реселера")
             bot.register_next_step_handler (us_id, ressler_add, bot)
@@ -378,6 +412,7 @@ class Work(object):
 
 
     def resseler_del_init(self, bot: telebot.TeleBot ,message:types.Message):
+        """GETTING USER'S ID FOR RESSELER REMOVING"""
         try:
             us_id = bot.send_message(message.chat.id, "Введите id пользователя у которого хотите отобрать роль реселера")
             bot.register_next_step_handler (us_id, ressler_del, bot)
@@ -385,6 +420,7 @@ class Work(object):
             print(str(e))
 
     def give_sub_count_start(self, bot: telebot.TeleBot ,message:types.Message):
+        """GETTING USER'S ID FOR SUB GIVING"""
         try:
             us_id = bot.send_message(message.chat.id, "Введите id пользователя которому хотите выдать возможность раздачи подписки")
             bot.register_next_step_handler (us_id, self.give_sub_count_int, bot)
@@ -392,8 +428,8 @@ class Work(object):
             print(str(e))
 
     def give_sub_count_int(self,message:types.Message, bot: telebot.TeleBot):
-        try:
-            
+        """GETTING COUNT OF OPORTUNITIES FOR SUB GIVING"""
+        try:         
             sub_count = bot.send_message(message.chat.id, "Введите количество подписок возможных для выдачи юзером с id = " + str(message.text))
             bot.register_next_step_handler (sub_count, give_sub_count, bot, message.text)
 
@@ -401,6 +437,7 @@ class Work(object):
             print(str(e))
         
     def hwid_res_start(self, bot: telebot.TeleBot ,message:types.Message):
+        """GETTING USER'S ID FOR HWID RESET"""
         try:
             us_id = bot.send_message(message.chat.id, "Введите id пользователя у которого хотите сбросить хвид")
             bot.register_next_step_handler (us_id, hwid_res, bot)
@@ -408,7 +445,10 @@ class Work(object):
         except Exception as e:
             print(str(e))
 
+
+#-----------------------------------------------------USELESS---------------------------------------------------------------
     def j(self, bot: telebot.TeleBot ,message:types.Message):
+        """USELESS FUNC FOR TEST"""
         connect = mysql.connector.connect(**config)
         cur = connect.cursor()
         dak = datetime.date(2022, 3, 12)
@@ -419,8 +459,18 @@ class Work(object):
         cur.close()
         connect.close()
 
+    def delete(self):
+        try:
+            path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'log.json')
+            os.remove(path)
+        except Exception as e:
+            print(str(e))
+#---------------------------------------------------------------------------------------------------------------------------
+
+
     def subscription(self, bot: telebot.TeleBot ,message:types.Message):
-        #try:s
+        """GETTING AND SENDING ENDING OF SUB"""
+        try:
            
             connect = mysql.connector.connect(**config)
             cur = connect.cursor()
@@ -434,6 +484,8 @@ class Work(object):
 
                 cur.execute(f"SELECT time_subscription FROM records WHERE user_id = {id}")
                 date = cur.fetchone()
+                cur.close()
+                connect.close()
                 
                 splitted = str(date[0]).split("-")
                 try:
@@ -444,19 +496,25 @@ class Work(object):
                 delta_date = end_date - datetime.date.today()
                 if end_date < datetime.date.today():
                     bot.send_message(id, "You haven't got any subscriptions yet")
-                    print('d')
+                    
+                   
                 else:
                     bot.send_message(id, "Your subscription expiried at " + str(date[0]) + "\nDays left: " + str(delta_date.days))
             else:
+                cur.close()
+                connect.close()
                 bot.send_message(id, "You haven't got any subscriptions yet")
 
             cur.close()
             connect.close()
 
-        #except Exception as e:
-            #print(str(e))
+        except Exception as e:
+            cur.close()
+            connect.close()
+            print(str(e))
 
     def ban_start(self, bot: telebot.TeleBot ,message:types.Message):
+        """GETTING USER'S ID FOR BAN"""
         try:
             us_id = bot.send_message(message.chat.id, "Введите id юзера для бана")     
             bot.register_next_step_handler (us_id, ban, bot)       
@@ -465,6 +523,7 @@ class Work(object):
 
 
     def unban_start(self, bot: telebot.TeleBot ,message:types.Message):
+        """GETTING USER'S ID FOR UNBAN"""
         try:
             us_id = bot.send_message(message.chat.id, "Введите id юзера для разбана")     
             bot.register_next_step_handler (us_id, unban, bot)     
@@ -472,6 +531,7 @@ class Work(object):
             print(str(e))
 
     def check_status(self, message:types.Message):
+        """ROLE CHECKING"""
         try:
             connect = mysql.connector.connect(**config)
             cur = connect.cursor()
@@ -488,11 +548,14 @@ class Work(object):
                 return 0
 
         except Exception as e:
+            cur.close()
+            connect.close()
             print(str(e))
 
 
 
     def CheckAcc(self, str_, words):
+        """SUPER ADMIN CHECKING"""
         for word in words:
             if word in str_:
                 return True
@@ -505,6 +568,7 @@ class Work(object):
 
 #------------------------------CLASS USING FUNCTIONS------------------------------
 def unban(message:types.Message, bot: telebot.TeleBot):
+    """USER UNABNING"""
     try:
         connect = mysql.connector.connect(**config)
         cur = connect.cursor()
@@ -516,9 +580,12 @@ def unban(message:types.Message, bot: telebot.TeleBot):
         cur.close()
         connect.close()
     except Exception as e:
+        cur.close()
+        connect.close()
         print(str(e))
 
 def ressler_add(message:types.Message, bot: telebot.TeleBot):
+    """RESSELER ADDING"""
     try:
         connect = mysql.connector.connect(**config)
         cur = connect.cursor()
@@ -534,10 +601,13 @@ def ressler_add(message:types.Message, bot: telebot.TeleBot):
         cur.close()
         connect.close()
     except Exception as e:
+        cur.close()
+        connect.close()
         print(str(e))
 
 
 def ressler_del(message:types.Message, bot: telebot.TeleBot):
+    """REMOVE RESSELER ROLE"""
     try:
         connect = mysql.connector.connect(**config)
         cur = connect.cursor()
@@ -553,10 +623,13 @@ def ressler_del(message:types.Message, bot: telebot.TeleBot):
         cur.close()
         connect.close()
     except Exception as e:
+        cur.close()
+        connect.close()
         print(str(e))
 
 
 def ban(message:types.Message, bot: telebot.TeleBot):
+    """USER BAN"""
     try:
         connect = mysql.connector.connect(**config)
         cur = connect.cursor()
@@ -568,10 +641,13 @@ def ban(message:types.Message, bot: telebot.TeleBot):
         cur.close()
         connect.close()
     except Exception as e:
+        cur.close()
+        connect.close()
         print(str(e))
 
 
 def give_sub_count(message:types.Message, bot: telebot.TeleBot, id):
+    """GIVING SUB COUNT"""
     try:
         connect = mysql.connector.connect(**config)
         cur = connect.cursor()
@@ -597,9 +673,12 @@ def give_sub_count(message:types.Message, bot: telebot.TeleBot, id):
             return
 
     except Exception as e:
+        cur.close()
+        connect.close()
         print(str(e))
 
 def hwid_res( message:types.Message, bot: telebot.TeleBot ):
+    """HWID RESET"""
     try:
         connect = mysql.connector.connect(**config)
         cur = connect.cursor()
@@ -614,24 +693,33 @@ def hwid_res( message:types.Message, bot: telebot.TeleBot ):
         connect.close()
 
     except Exception as e:
+        cur.close()
+        connect.close()
         print(str(e))
 
 
 def give_sub(message:types.Message, bot: telebot.TeleBot, id):
-    
-    connect = mysql.connector.connect(**config)
-    cur = connect.cursor()
-    inf = [message.text, id]
-    cur.execute("UPDATE records SET time_subscription = %s, has_subscription = True WHERE user_id = %s", inf)
-    connect.commit()
+    """GIVING SUB"""
+    try:
+        connect = mysql.connector.connect(**config)
+        cur = connect.cursor()
+        inf = [message.text, id]
+        cur.execute("UPDATE records SET time_subscription = %s, has_subscription = True WHERE user_id = %s", inf)
+        connect.commit()
 
-    cur.close()
-    connect.close()
-    bot.send_message(message.chat.id, "Пользователю успешно дана подписка\nОн осведомлён")
-    bot.send_message(id, "Вам продлили подписку до " + str(message.text))
+        cur.close()
+        connect.close()
+        bot.send_message(message.chat.id, "Пользователю успешно дана подписка\nОн осведомлён")
+        bot.send_message(id, "Вам продлили подписку до " + str(message.text))
+    except Exception as e:
+        cur.close()
+        connect.close()
+        print(str(e))
+
 
 
 def SetPass(message:types.Message, bot: telebot.TeleBot):
+    """SETTING PASSWORD FOR NEW USER"""
     try:
         connect = mysql.connector.connect(**config)
         cur = connect.cursor()
@@ -654,11 +742,13 @@ def SetPass(message:types.Message, bot: telebot.TeleBot):
 
     except Exception as e:
         print(str(e))
+        cur.close()
+        connect.close()
         bot.send_message(message.chat.id, "Пароль не добавлен")
 
 
 def push():
-
+    """PUSHING TO GITHUB"""
     try:
         g = Github("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")
         repo = g.get_user().get_repo('logs') 
@@ -692,12 +782,12 @@ def push():
         print(str(e))
 
 def send(message:types.Message, bot: telebot.TeleBot, id):
-    bot.send_message(id, "Ответ на ваш недавний вопрос:\n"+ str(message.text))
-    bot.send_message(message.chat.id, "Ответ успешно отправлен", reply_markup=next)
-
-    #path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'logs\\log.json')
-    #os.remove(path)
-    #download()
+    """SENDING TICKET ANSWER TO USER"""
+    try:
+        bot.send_message(id, "Ответ на ваш недавний вопрос:\n"+ str(message.text))
+        bot.send_message(message.chat.id, "Ответ успешно отправлен", reply_markup=next)
+    except Exception as e:
+        print(str(e))
 
    
 

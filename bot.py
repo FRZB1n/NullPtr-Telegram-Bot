@@ -1,11 +1,9 @@
-from email import message
 from telebot import types
 import telebot
-from func import Oplata, Work, adm
-import sqlite3
+from func import Oplata, Work, adm, config
+import mysql.connector
 
-from pyqiwip2p import QiwiP2P
-from pyqiwip2p.p2p_types import QiwiCustomer, QiwiDatetime, PaymentMethods
+
 
 
 
@@ -19,7 +17,7 @@ def init(message):
     if check_ban(message):
         return
     f.start(bot, message)
-    #f.j(bot, message)
+
 
 
 @bot.message_handler(commands=['help'])
@@ -98,6 +96,10 @@ def txt_handler(message: types.Message):
 
     elif message.text == 'Buy':
        pay.init_pay(bot, message)
+
+    elif message.text == 'Change password':  
+        f.change_pass(bot, message)
+
             
 
 
@@ -141,13 +143,14 @@ def callback_inline(call):
 
 
 def check_ban(message: types.Message):
-    connect = sqlite3.connect('users.db')
+    connect = mysql.connector.connect(**config)
     cur = connect.cursor()
 
     cur.execute(f"SELECT ban FROM records WHERE user_id = {message.chat.id}")
     ban = cur.fetchone()
+
     if ban is None:
-        return
+        return False
 
     if ban[0] == True:
         video = open('videoplayback.mp4', 'rb')
