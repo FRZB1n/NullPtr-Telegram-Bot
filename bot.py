@@ -89,7 +89,7 @@ def txt_handler(message: types.Message):
             bot.send_message(message.chat.id, "You aren't accesible")
     elif message.text == 'fix prob':
         if status > 1:
-            f.download()#ISSUE FIXED
+            #f.download()#ISSUE FIXED
             f.fixing_problems(bot, message)
         else:
             bot.send_message(message.chat.id, "You aren't accesible")

@@ -10,10 +10,12 @@ from github import InputGitTreeElement
 import os
 from pyqiwip2p import QiwiP2P
 
+#-----------SUPER ADMIN------------
 adm= [
     '1030297121',# FRZ
     '630035056'#HOHOL
 ]
+#----------------------------------
 
 #--------------------------------KB ZONE---------------------------------
 next = types.InlineKeyboardMarkup(row_width=2)
@@ -49,13 +51,15 @@ pay_check = types.InlineKeyboardMarkup(row_width=1)
 Done = types.InlineKeyboardButton("Done", callback_data='done')
 pay_check.add(Done)
 #------------------------------------------------------------------------
+
+#---------------Info for database connection----------------
 config = {
   'user': 'sql11483579',
   'password': 'gznQv95GYD',
   'host': 'sql11.freemysqlhosting.net',
   'database': 'sql11483579'
 }
-
+#-----------------------------------------------------------
 class Oplata(object):
     def init_pay(self, bot: telebot.TeleBot ,message:types.Message):
         """THE HARDEST FUNC"""    
@@ -322,7 +326,7 @@ class Work(object):
                 del(data['rec'][0])#del first question
                 with open('log.json', "w") as json_file:
                     json.dump(data, json_file, indent=2 , ensure_ascii=False)#rewrite new question file
-                push()#push this file
+                #push()#push this file
                 bot.register_next_step_handler(otv, send, bot, id)#sending answer for our bustard
                 del(data)#del data for reduce shit with repeating answer
                           
@@ -333,8 +337,10 @@ class Work(object):
         """DOWNLOADING FRESH TICKETS"""
         url = 'https://raw.githubusercontent.com/FRZBin/logs/main/log.json' 
         r = requests.get(url) 
+        print(str(r.content))
         with open('log.json', 'wb') as f: 
-            f.write(r.content) 
+            f.write(r.content )
+        del(r)
 
     def change_pass(seld, bot: telebot.TeleBot ,message:types.Message):#AHHAHA GENIUS
         pas = bot.send_message(message.chat.id, "Введите новый пароль:")
@@ -470,48 +476,49 @@ class Work(object):
 
     def subscription(self, bot: telebot.TeleBot ,message:types.Message):
         """GETTING AND SENDING ENDING OF SUB"""
-        try:
+       # try:
            
-            connect = mysql.connector.connect(**config)
-            cur = connect.cursor()
-            id = message.chat.id
+        connect = mysql.connector.connect(**config)
+        cur = connect.cursor()
+        id = message.chat.id
 
-            cur.execute(f"SELECT has_subscription FROM records WHERE user_id = {id}")
-            has_sub = cur.fetchone()
+        cur.execute(f"SELECT has_subscription FROM records WHERE user_id = {id}")
+        has_sub = cur.fetchone()
 
-            if has_sub[0] == True:
+        if has_sub[0] == True:
 
 
-                cur.execute(f"SELECT time_subscription FROM records WHERE user_id = {id}")
-                date = cur.fetchone()
-                cur.close()
-                connect.close()
-                
-                splitted = str(date[0]).split("-")
-                try:
-                    end_date = datetime.date(int(splitted[0]), int(splitted[1]), int(splitted[2]))
-                except Exception as e:
-                    print(str(e))
+            cur.execute(f"SELECT time_subscription FROM records WHERE user_id = {id}")
+            date = cur.fetchone()
+            if date[0] is None:
+                return
+            cur.close()
+            connect.close()
+            print(date)
+            splitted = str(date[0]).split("-")
+            #print(splitted)
+            end_date = datetime.date(int(splitted[0]), int(splitted[1]), int(splitted[2]))
             
-                delta_date = end_date - datetime.date.today()
-                if end_date < datetime.date.today():
-                    bot.send_message(id, "You haven't got any subscriptions yet")
-                    
-                   
-                else:
-                    bot.send_message(id, "Your subscription expiried at " + str(date[0]) + "\nDays left: " + str(delta_date.days))
-            else:
-                cur.close()
-                connect.close()
+        
+            delta_date = end_date - datetime.date.today()
+            if end_date < datetime.date.today():
                 bot.send_message(id, "You haven't got any subscriptions yet")
-
+                
+                
+            else:
+                bot.send_message(id, "Your subscription expiried at " + str(date[0]) + "\nDays left: " + str(delta_date.days))
+        else:
             cur.close()
             connect.close()
+            bot.send_message(id, "You haven't got any subscriptions yet")
 
-        except Exception as e:
-            cur.close()
-            connect.close()
-            print(str(e))
+        cur.close()
+        connect.close()
+
+        #except Exception as e:
+            #cur.close()
+            #connect.close()
+            #print(str(e))
 
     def ban_start(self, bot: telebot.TeleBot ,message:types.Message):
         """GETTING USER'S ID FOR BAN"""
@@ -751,7 +758,7 @@ def push():
     """PUSHING TO GITHUB"""
     try:
         g = Github("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")
-        repo = g.get_user().get_repo('logs') 
+        repo = g.get_user().get_repo('lg') 
 
         file_list = [
             'log.json'
