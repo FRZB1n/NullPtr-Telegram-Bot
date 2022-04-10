@@ -326,7 +326,7 @@ class Work(object):
                 del(data['rec'][0])#del first question
                 with open('log.json', "w") as json_file:
                     json.dump(data, json_file, indent=2 , ensure_ascii=False)#rewrite new question file
-                #push()#push this file
+                push()#push this file
                 bot.register_next_step_handler(otv, send, bot, id)#sending answer for our bustard
                 del(data)#del data for reduce shit with repeating answer
                           
