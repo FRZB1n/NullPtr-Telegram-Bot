@@ -116,7 +116,14 @@ class Oplata(object):
             cur.execute(f"SELECT hack_type FROM records WHERE user_id = {message.chat.id}")
             hack_type = cur.fetchone()
             stro  = hack_type[0]
-        
+
+               
+            #cur.execute("UPDATE records SET bill_id = %s WHERE user_id = %s", inf)
+            #connect.commit()
+            inf = [str(data), message.chat.id]   
+            cur.execute("UPDATE records SET bill_add_w = %s WHERE user_id = %s", inf)
+            connect.commit()
+            
             cur.close()
             connect.close()
 
@@ -126,45 +133,58 @@ class Oplata(object):
                     match str(data):
                         case "day":
                             bill = p2p.bill(amount=1, lifetime=15)#800
+                            set_bill_id(bill, message)
+
                             bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
                             
                         case "week":
                             bill = p2p.bill(amount=2000, lifetime=15)
+                            set_bill_id(bill, message)
                             bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
                         case "month":
                             bill = p2p.bill(amount=6400, lifetime=15)
+                            set_bill_id(bill, message)
                             bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
                 case "apex":
                     
                     match str(data):
                         case "day":
                             bill = p2p.bill(amount=400, lifetime=15)
+                            set_bill_id(bill, message)
                             bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
                         case "week":
                             bill = p2p.bill(amount=1200, lifetime=15)
+                            set_bill_id(bill, message)
                             bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
                         case "month":
                             bill = p2p.bill(amount=3200, lifetime=15)
+                            set_bill_id(bill, message)
                             bot.send_message(message.chat.id, str(bill.pay_url), reply_markup=pay_check)
-                        
-        
-            return bill, data
+            cur.close()
+            connect.close()
         except Exception as e:
             cur.close()
             connect.close()
             print(str(e))
 
-    def Check_bill(self, bot: telebot.TeleBot ,message:types.Message, bill, dateend):
+    def Check_bill(self, bot: telebot.TeleBot ,message:types.Message, dateend):
         """BILL CHECKING"""
         p2p = QiwiP2P(auth_key="eyJ2ZXJzaW9uIjoiUDJQIiwiZGF0YSI6eyJwYXlpbl9tZXJjaGFudF9zaXRlX3VpZCI6IjBqa3Roay0wMCIsInVzZXJfaWQiOiI3OTk1MTI0ODU3NCIsInNlY3JldCI6ImRjMjk3NzkwYTAyNDVjMzZmM2MyMTJiYmQwZTEwMWQ1Y2VjZDRmMTVhOTVlMWQxZjQxZDI0ZmU5YjNjNjRmYmUifX0=")
         
         
+        connect = mysql.connector.connect(**config)
+        cur = connect.cursor()
         
+        cur.execute(f"SELECT bill_id FROM records WHERE user_id = {message.chat.id}")
+        bill_ide = cur.fetchone()
+        print(str(bill_ide[0]))
         
-        match str(p2p.check(bill_id=bill.bill_id).status):
+        match str(p2p.check(bill_id=str(bill_ide[0]).removeprefix("b'").removesuffix("'")).status):
             case "WAITING":
-                bot.send_message(message.chat.id, "Платеж не прошел\n"+str(bill.pay_url),reply_markup=pay_check)
+                bot.send_message(message.chat.id, "Платеж не прошел\n"+str(p2p.check(bill_id=str(bill_ide[0]).removeprefix("b'").removesuffix("'")).pay_url),reply_markup=pay_check)
             case "PAID":
+                
+                
                 bot.send_message(message.chat.id, "Платеж успешно совершен")
                 self.give_payed_sub(bot, message, dateend)
 
@@ -194,7 +214,7 @@ class Oplata(object):
 
 
 
-            match str(dateend):
+            match str(dateend).removeprefix("b'").removesuffix("'"):
                 case "day":
                     dik = datetime.date(end_date.year, end_date.month, end_date.day+1)
                     inf = [dik, message.chat.id]
@@ -247,7 +267,9 @@ class Work(object):
                 has_subscription BOOL,
                 time_subscription DATE,
                 hwid TEXT,
-                ban BOOL
+                ban BOOL,
+                bill_id TEXT,
+                bill_add_w TEXT
             )""")
             connect.commit()
 
@@ -797,4 +819,19 @@ def send(message:types.Message, bot: telebot.TeleBot, id):
         print(str(e))
 
    
+
+def set_bill_id(bill, message:types.Message):
+    try:
+        connect = mysql.connector.connect(**config)
+        cur = connect.cursor()
+
+        inf = [str(bill.bill_id), message.chat.id]   
+        cur.execute("UPDATE records SET bill_id = %s WHERE user_id = %s", inf)
+        connect.commit()
+        cur.close()
+        connect.close()
+    except Exception as e:
+        cur.close()
+        connect.close()
+        print(str(e))
 

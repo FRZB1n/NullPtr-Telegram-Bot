@@ -3,7 +3,8 @@ import telebot
 from func import Oplata, Work, adm, config
 import mysql.connector
 
-
+from pyqiwip2p.notify import QiwiNotify
+from pyqiwip2p.p2p_types import Bill
 
 
 
@@ -14,10 +15,9 @@ f = Work()
 @bot.message_handler(commands=['start'])
 def init(message):
 
-    if check_ban(message):
-        return
+    #if check_ban(message):
+       # return
     f.start(bot, message)
-
 
 
 @bot.message_handler(commands=['help'])
@@ -28,8 +28,8 @@ def help(message):
 
 @bot.message_handler(content_types=['text'])
 def txt_handler(message: types.Message):
-    if check_ban(message):
-        return
+    #if check_ban(message):
+        #return
 
 
     if f.CheckAcc(str(message.chat.id), adm):
@@ -101,13 +101,13 @@ def txt_handler(message: types.Message):
         f.change_pass(bot, message)
 
             
-
+                   
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
 
     v = call.data
-    global billn
+    
     if call.message:
         match v:
             case "next":
@@ -124,16 +124,24 @@ def callback_inline(call):
 
             case "day":
                 bot.delete_message(call.message.chat.id, call.message.id)
-                billn = pay.time_step(bot, call.message, v)
+                pay.time_step(bot, call.message, v)
             case "week":
                 bot.delete_message(call.message.chat.id, call.message.id)
-                billn = pay.time_step(bot, call.message, v)
+                pay.time_step(bot, call.message, v)
             case "month":
                 bot.delete_message(call.message.chat.id, call.message.id)
-                billn = pay.time_step(bot, call.message, v)
+                pay.time_step(bot, call.message, v)
             case "done":
                 bot.delete_message(call.message.chat.id, call.message.id)
-                pay.Check_bill(bot, call.message, billn[0], billn[1])
+                connect = mysql.connector.connect(**config)
+                cur = connect.cursor()
+
+                cur.execute(f"SELECT bill_add_w FROM records WHERE user_id = {call.message.chat.id}")
+                bill_add_w = cur.fetchone()
+                print(bill_add_w[0])
+                cur.close()
+                connect.close()
+                pay.Check_bill(bot, call.message, bill_add_w[0])
             
 
 
