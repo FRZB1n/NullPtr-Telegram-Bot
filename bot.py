@@ -15,8 +15,8 @@ f = Work()
 @bot.message_handler(commands=['start'])
 def init(message):
 
-    #if check_ban(message):
-       # return
+    if check_ban(message):
+        return
     f.start(bot, message)
 
 
@@ -28,8 +28,8 @@ def help(message):
 
 @bot.message_handler(content_types=['text'])
 def txt_handler(message: types.Message):
-    #if check_ban(message):
-        #return
+    if check_ban(message):
+        return
 
 
     if f.CheckAcc(str(message.chat.id), adm):
@@ -105,7 +105,8 @@ def txt_handler(message: types.Message):
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
-
+    if check_ban(call.message):
+        return
     v = call.data
     
     if call.message:
@@ -156,6 +157,9 @@ def check_ban(message: types.Message):
 
     cur.execute(f"SELECT ban FROM records WHERE user_id = {message.chat.id}")
     ban = cur.fetchone()
+
+    cur.close()
+    connect.close()
 
     if ban is None:
         return False
