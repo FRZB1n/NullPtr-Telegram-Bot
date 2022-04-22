@@ -276,7 +276,6 @@ class Work(object):
             cur.execute(f"SELECT user_id FROM records WHERE user_id = {id}")
             data = cur.fetchone()
 
-
             if data is None:
 
                

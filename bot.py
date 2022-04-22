@@ -100,8 +100,7 @@ def txt_handler(message: types.Message):
     elif message.text == 'Change password':  
         f.change_pass(bot, message)
 
-            
-                   
+                       
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
