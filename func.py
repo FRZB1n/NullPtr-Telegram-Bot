@@ -356,7 +356,7 @@ class Work(object):
 
     def download(self):
         """DOWNLOADING FRESH TICKETS"""
-        url = 'https://raw.githubusercontent.com/FRZBin/logs/main/log.json' 
+        url = 'https://raw.githubusercontent.com/FRZBin/lg/main/log.json' 
         r = requests.get(url) 
         print(str(r.content))
         with open('log.json', 'wb') as f: 
