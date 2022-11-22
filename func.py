@@ -12,8 +12,8 @@ from pyqiwip2p import QiwiP2P
 
 #-----------SUPER ADMIN------------
 adm= [
-    '1030297121',# FRZ
-    '630035056'#HOHOL
+    '',# FRZ
+    ''#HOHOL
 ]
 #----------------------------------
 
