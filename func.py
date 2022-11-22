@@ -54,10 +54,10 @@ pay_check.add(Done)
 
 #---------------Info for database connection----------------
 config = {
-  'user': 'sql11483579',
-  'password': 'gznQv95GYD',
-  'host': 'sql11.freemysqlhosting.net',
-  'database': 'sql11483579'
+  'user': '',
+  'password': '',
+  'host': '',
+  'database': ''
 }
 #-----------------------------------------------------------
 class Oplata(object):
@@ -109,7 +109,7 @@ class Oplata(object):
     def time_step(self, bot: telebot.TeleBot ,message:types.Message, data):
         """BILL GENERATING"""
         try:
-            p2p = QiwiP2P(auth_key="eyJ2ZXJzaW9uIjoiUDJQIiwiZGF0YSI6eyJwYXlpbl9tZXJjaGFudF9zaXRlX3VpZCI6IjBqa3Roay0wMCIsInVzZXJfaWQiOiI3OTk1MTI0ODU3NCIsInNlY3JldCI6ImRjMjk3NzkwYTAyNDVjMzZmM2MyMTJiYmQwZTEwMWQ1Y2VjZDRmMTVhOTVlMWQxZjQxZDI0ZmU5YjNjNjRmYmUifX0=")
+            p2p = QiwiP2P(auth_key="")
             connect = mysql.connector.connect(**config)
             cur = connect.cursor()
 
@@ -169,7 +169,7 @@ class Oplata(object):
 
     def Check_bill(self, bot: telebot.TeleBot ,message:types.Message, dateend):
         """BILL CHECKING"""
-        p2p = QiwiP2P(auth_key="eyJ2ZXJzaW9uIjoiUDJQIiwiZGF0YSI6eyJwYXlpbl9tZXJjaGFudF9zaXRlX3VpZCI6IjBqa3Roay0wMCIsInVzZXJfaWQiOiI3OTk1MTI0ODU3NCIsInNlY3JldCI6ImRjMjk3NzkwYTAyNDVjMzZmM2MyMTJiYmQwZTEwMWQ1Y2VjZDRmMTVhOTVlMWQxZjQxZDI0ZmU5YjNjNjRmYmUifX0=")
+        p2p = QiwiP2P(auth_key="")
         
         
         connect = mysql.connector.connect(**config)
@@ -778,7 +778,7 @@ def SetPass(message:types.Message, bot: telebot.TeleBot):
 def push():
     """PUSHING TO GITHUB"""
     try:
-        g = Github("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")
+        g = Github("")
         repo = g.get_user().get_repo('lg') 
 
         file_list = [
